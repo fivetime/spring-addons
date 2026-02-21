@@ -1,33 +1,33 @@
-# How to configure a Spring REST API with token introspection
+# 如何配置带有 Token Introspection 的 Spring REST API
 
-## 0. Disclaimer
-There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+## 0. 免责声明
+本仓库示例数量较多，所有示例均纳入 CI 以确保代码可编译且测试全部通过。遗憾的是，此 README 不会随源码变更自动更新。请将其作为理解源码的参考指引。**如需复制代码，请务必从源码中复制，而非从此 README 中复制。**
 
-## 1. Overview
-The aim here is to set up security for a Spring Boot 3 resource server access token introspection on **any OpenID authorization-server**: those exposing an introspection endpoint in their OpenID configuration (like Keycloak), but also those just exposing a `/userinfo` endpoint (like Auth0 and Amazon Cognito).
+## 1. 概述
+本教程的目标是为一个 Spring Boot 3 resource server 配置安全机制，使其能对**任意 OpenID 授权服务器**的 access token 进行 introspection：既包括在 OpenID 配置中暴露了 introspection endpoint 的 Provider（如 Keycloak），也包括仅暴露了 `/userinfo` endpoint 的 Provider（如 Auth0 和 Amazon Cognito）。
 
-For each and every request it processes, resource servers will send a request to authorization-server to get token details. This has **serious performance impact** compared to JWT-decoder based security where authorization-server is accessed only once to retrieve signing key.
+对于每个处理的请求，resource server 都会向授权服务器发送一个请求以获取 token 详情。与基于 JWT decoder 的安全机制（只需访问授权服务器一次以获取签名公钥）相比，这会**对性能产生明显影响**。
 
-## 2. Authorization-server requirements
-We assume that [tutorials prerequisites](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites) are satisfied and that a minimum of 1 OIDC Provider is configured with a client and authorization-code to authenticate users. As it is hard to guess from which OP was issued an opaque token, we will accept identities from only one issuer. To provide with multi-tenancy and token introspection, we would need a custom header or something containing the issuer URI, for our resource server to know where it should introspect it. This additional complexity is out of the scope of this tutorial and, instead, we'll work with profiles to switch between OPs.
+## 2. 授权服务器要求
+假设已满足[教程前置条件](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites)，并已配置至少 1 个 OIDC Provider，包含用于用户认证的 client 和 authorization-code。由于很难判断一个不透明 token 来自哪个 OP，我们只接受来自单个 issuer 的身份。若要同时支持多租户和 token introspection，则需要通过自定义请求头或其他方式携带 issuer URI，以便 resource server 知道应向哪里进行 introspection。这种额外复杂度超出了本教程的范围，因此我们改用 profile 在不同 OP 之间切换。
 
-Introspection endpoint is reached using client-credentials flow. A client should be configured with that flow too on each OP conforming with the introspection specification (either the same client as for user authentication or another one).
+Introspection endpoint 通过 client-credentials 流程访问。对于符合 introspection 规范的每个 OP，应配置一个支持该流程的 client（可以是与用户认证相同的 client，也可以是另一个）。
 
-For Keycloak, this means a client must be configured with:
-- `confidential` "Access Type"
-- "Service Accounts Enabled" activated
-Create one if you don't have yet. You'll get client-secret from "credentials tab" once configuration saved.
+对于 Keycloak，这意味着需要配置一个满足以下条件的 client：
+- "Access Type" 为 `confidential`
+- 启用 "Service Accounts Enabled"
 
-As Auth0 and Amazon Cognito do not expose an `introspection_endpoint` in their OpenID configuration, the client with client-credentials flow is not necessary there: we'll query the `/userinfo` endpoint using the access token to introspect as access token for that request.
+如果还没有，请创建一个。保存配置后，可以在 "credentials" 标签页中获取 client-secret。
 
-## 3. Project Initialization
-We'll start a spring-boot 3 project with the help of https://start.spring.io/
-Following dependencies will be needed:
+由于 Auth0 和 Amazon Cognito 不在其 OpenID 配置中暴露 `introspection_endpoint`，因此不需要配置支持 client-credentials 流程的 client：我们将使用待 introspect 的 access token 作为请求的 access token，直接查询 `/userinfo` endpoint。
+
+## 3. 项目初始化
+借助 https://start.spring.io/ 创建一个 Spring Boot 3 项目，需要以下依赖：
 - Lombok
 
-Then add dependencies to spring-addons:
+然后添加 spring-addons 相关依赖：
 - [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc)
-- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test) with `test` scope
+- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test)（`test` scope）
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
@@ -42,8 +42,8 @@ Then add dependencies to spring-addons:
 </dependency>
 ```
 
-## 5. Application Properties
-Let's first define some constants later used in configuration, and sometimes overridden in profiles:
+## 5. 应用配置属性
+首先定义一些后续配置中使用的常量，部分常量在 profile 中会被覆盖：
 ```yaml
 scheme: http
 origins: ${scheme}://localhost:4200
@@ -55,7 +55,7 @@ cognito-secret: change-me
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 auth0-secret: change-me
 ```
-Then we have some standard Spring Boot configuration for the server and OAuth2 resource servers with token introspection:
+然后是服务器和带有 token introspection 的 OAuth2 resource server 的标准 Spring Boot 配置：
 ```yaml
 server:
   error:
@@ -73,10 +73,10 @@ spring:
           client-secret: ${keycloak-secret}
           introspection-uri: ${keycloak-issuer}/protocol/openid-connect/token/introspect
 ```
-Next is some spring-addons configuration with:
-- CORS configuration (enables for instance to switch allowed-origins when deploying to a new environment)
-- `issuers`: provide with authorities mapping configuration (claim(s) to pick, as well as case and prefix transformations)
-- `permit-all`: path matchers for "public" resources (accessible to unauthorized requests). Path not matched here require requests to be authorized (access control fine-tuned with method security)
+接下来是 spring-addons 配置，包含：
+- CORS 配置（例如可在部署到新环境时切换 allowed-origins）
+- `issuers`：提供 authorities 映射配置（选取的 claim、大小写转换和前缀）
+- `permit-all`："公开"资源的路径匹配器（允许未授权请求访问），未匹配的路径要求请求已授权（通过方法级安全进一步精调访问控制）
 ```yaml
 com:
   c4-soft:
@@ -97,7 +97,7 @@ com:
           - "/actuator/health/liveness"
           - "/v3/api-docs/**"
 ```
-Last is profile to enable SSL on this server and when talking to the local Keycloak instance:
+最后是在本服务器及与本地 Keycloak 实例通信时启用 SSL 的 profile：
 ```yaml
 ---
 scheme: https
@@ -111,17 +111,16 @@ spring:
   config:
     activate:
       on-profile: ssl
-
 ```
 
-## 4. Web-Security Configuration
-`spring-addons-starter-oidc` auto-configures a security filter-chain for resource server with token introspection and there is nothing we have to do beyond activating method security.
+## 4. Web Security 配置
+`spring-addons-starter-oidc` 会自动配置带有 token introspection 的 resource server security filter chain，我们只需要启用方法级安全即可，无需做其他任何配置。
 
-## 6. Non-Standard Introspection Endpoint
-The token introspection we have works just fine with OIDC Providers exposing an `introspection_endpoint` in their OpenID configuration (like Keycloak does), but some just don't provide one (like Auth0 and Amazon Cognito). Hopefully, almost any OP exposes a `/userinfo` endpoint returning the OpenID claims of the user for whom was issued the access token in the Authorization header.
+## 6. 非标准 Introspection Endpoint
+上述 token introspection 配置对在 OpenID 配置中暴露了 `introspection_endpoint` 的 OIDC Provider（如 Keycloak）运行正常，但部分 Provider 并不提供此 endpoint（如 Auth0 和 Amazon Cognito）。好在几乎所有 OP 都暴露了 `/userinfo` endpoint，对于 `Authorization` 请求头中携带的 access token 所对应的用户，该 endpoint 会返回其 OpenID claim。
 
-### 6.1. Additional Application Properties
-Let's first define spring profiles with `introspection-uri` settled with userinfo URI for the OPs without an `introspection_endpoint`:
+### 6.1. 额外的应用配置属性
+首先为没有 `introspection_endpoint` 的 OP 定义 Spring profile，将 `introspection-uri` 设置为 userinfo URI：
 ```yaml
 ---
 com:
@@ -168,8 +167,8 @@ spring:
       on-profile: cognito
 ```
 
-### 6.2. Custom `OpaqueTokenIntrospector`
-Now, we can write our own `OpaqueTokenIntrospector`, querying `/userinfo` with an Authorization header containing the token to introspect. If we get an answer, the token is valid and the claims will be the OpenID claims of the user for whom this token was issued:
+### 6.2. 自定义 `OpaqueTokenIntrospector`
+现在，我们可以编写自定义的 `OpaqueTokenIntrospector`，通过在 `Authorization` 请求头中携带待 introspect 的 token 来查询 `/userinfo`。如果收到响应，则说明 token 有效，返回的 claim 即为该 token 签发对象的 OpenID claim：
 ```java
 @Component
 @Profile("auth0 | cognito")
@@ -189,15 +188,15 @@ public static class UserEndpointOpaqueTokenIntrospector implements OpaqueTokenIn
         headers.setBearerAuth(token);
         final var claims = new OpenidClaimSet(restClient
                 .exchange(userinfoUri, HttpMethod.GET, new HttpEntity<>(headers), Map.class).getBody());
-        // No need to map authorities there, it is done later by OpaqueTokenAuthenticationConverter
+        // 此处无需映射 authorities，稍后由 OpaqueTokenAuthenticationConverter 完成
         return new OAuth2IntrospectionAuthenticatedPrincipal(claims, List.of());
     }
 
 }
 ```
-Exposing such an `OpaqueTokenIntrospector` and exposing it as a bean is enough with `spring-addons-starter-oidc` which will pick it instead of defining a default one.
+将这样的 `OpaqueTokenIntrospector` 暴露为 bean 即可，`spring-addons-starter-oidc` 会自动使用它，而不再创建默认实现。
 
-## 7. Sample `@RestController`
+## 7. 示例 `@RestController`
 ``` java
 @RestController
 @RequestMapping("/greet")
@@ -216,5 +215,5 @@ public class GreetingController {
 }
 ```
 
-## 8. Conclusion
-In this tutorial, we configured a Spring Boot 3 resource server with access token introspection on about any OpenID authorization-server, including those not exposing an `introspection_endpoint` in their `.well-known/openid-configuration`: we used the `/userinfo` endpoint (which almost always exists) and a custom `OpaqueTokenIntrospector` for such OPs.
+## 8. 总结
+在本教程中，我们为 Spring Boot 3 resource server 配置了几乎适用于任意 OpenID 授权服务器的 access token introspection，包括那些在 `.well-known/openid-configuration` 中未暴露 `introspection_endpoint` 的 Provider：对于此类 Provider，我们使用了（几乎始终存在的）`/userinfo` endpoint 并编写了自定义的 `OpaqueTokenIntrospector`。

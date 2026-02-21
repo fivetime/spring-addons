@@ -1,23 +1,22 @@
-# Authentication containing data from both the access token and a custom header
+# 同时包含 Access Token 和自定义请求头数据的 Authentication
 
-## 0. Disclaimer
-There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+## 0. 免责声明
+本仓库示例数量较多，所有示例均纳入 CI 以确保代码可编译且测试全部通过。遗憾的是，此 README 不会随源码变更自动更新。请将其作为理解源码的参考指引。**如需复制代码，请务必从源码中复制，而非从此 README 中复制。**
 
-## 1. Overview
-For this tutorial, we will assume that in addition to a JWT **access token** in the `Authorization` header, the OAuth2 client provides with a JWT **ID token** in a `X-ID-Token` header.
+## 1. 概述
+在本教程中，我们假设除了 `Authorization` 请求头中的 JWT **access token** 之外，OAuth2 client 还会在 `X-ID-Token` 请求头中附带一个 JWT **ID token**。
 
-Be sure your environment meets [tutorials prerequisites](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites).
+请确保你的环境满足[教程前置条件](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites)。
 
-## 2. Project Initialization
-We'll start a spring-boot 3 project with the help of https://start.spring.io/
-Following dependencies will be needed:
+## 2. 项目初始化
+借助 https://start.spring.io/ 创建一个 Spring Boot 3 项目，需要以下依赖：
 - Spring Web
 - OAuth2 Resource Server
 - Lombok
 
-Then add dependencies to:
+然后添加以下依赖：
 - [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc)
-- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test) with `test` scope
+- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test)（`test` scope）
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
@@ -32,14 +31,14 @@ Then add dependencies to:
 </dependency>
 ```
 
-If for whatever reason you don't want to use `spring-addons-starter-oidc`, see [`servlet-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) or [`reactive-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server) for basic configuration with `spring-boot-starter-oauth2-resource-server`. Spoiler, it is quite more verbose and error-prone.
+如果出于某种原因不想使用 `spring-addons-starter-oidc`，可以参考 [`servlet-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) 或 [`reactive-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server)，了解仅使用 `spring-boot-starter-oauth2-resource-server` 的基本配置方式。剧透：那样会繁琐得多，也更容易出错。
 
-## 3. Web-Security Configuration
-This configuration will use the pretty convenient [`HttpServletRequestSupport`](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/src/main/java/com/c4_soft/springaddons/security/oidc/starter/synchronised/HttpServletRequestSupport.java) which provides tooling to access the current request, and in our case, its headers. If we were writing a WebFlux application, we'd use is reactive equivalent: [`ServerHttpRequestSupport`](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/src/main/java/com/c4_soft/springaddons/security/oidc/starter/reactive/ServerHttpRequestSupport.java). If you don't use `spring-addons-starter-oidc`, you might need to copy some code from one of this support classes.
+## 3. Web Security 配置
+本配置将使用非常便捷的 [`HttpServletRequestSupport`](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/src/main/java/com/c4_soft/springaddons/security/oidc/starter/synchronised/HttpServletRequestSupport.java)，它提供了访问当前请求（在本例中为其请求头）的工具方法。如果编写的是 WebFlux 应用，则应使用其响应式对应版本：[`ServerHttpRequestSupport`](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/src/main/java/com/c4_soft/springaddons/security/oidc/starter/reactive/ServerHttpRequestSupport.java)。如果不使用 `spring-addons-starter-oidc`，可能需要从上述工具类中复制部分代码。
 
-`spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. We'll just add:
-- `@EnableMethodSecurity` to activate `@PreAuthorize` on components methods.
-- an authentication of our own designed to hold ID token string and claims in addition to access token ones:
+`spring-oauth2-addons` 提供了适用于 REST API 项目的 web security 配置 `@AutoConfiguration`。我们只需要：
+- 添加 `@EnableMethodSecurity` 以在组件方法上启用 `@PreAuthorize`
+- 定义自己的 authentication 类，用于在 access token 信息之外额外持有 ID token 字符串和 claim：
 ```java
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -55,15 +54,15 @@ public static class MyAuth extends OAuthentication<OpenidToken> {
 
 }
 ```
-- a `JwtAbstractAuthenticationTokenConverter` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to `MyAuth`
+- 提供一个 `JwtAbstractAuthenticationTokenConverter` bean，将 `Authentication` 实现从 `JwtAuthenticationToken` 切换为 `MyAuth`：
 ```java
 @Bean
 JwtAbstractAuthenticationTokenConverter authenticationConverter(
-    // Inject a converter to turn token claims into Spring authorities. A default one is provided by spring-addons-starter-oidc, if you haven't define one
+    // 注入一个将 token claim 转换为 Spring authority 的 converter。若未自定义，spring-addons-starter-oidc 会提供默认实现
     Converter<Map<String, Object>, Collection<? extends GrantedAuthority>> authoritiesConverter) {
   return jwt -> {
     try {
-      // Resolve the JWT decoder based on token claims (more on that below)
+      // 根据 token claim 解析对应的 JWT decoder（详见下文）
       final var jwtDecoder = getJwtDecoder(jwt.getClaims());
       final var authorities = authoritiesConverter.convert(jwt.getClaims());
       final var idTokenString =
@@ -78,7 +77,7 @@ JwtAbstractAuthenticationTokenConverter authenticationConverter(
   };
 }
 ```
-- a cash for ID tokens JWT decoders (instantiate only one decoder per ID token issuer). For that, we add the following to the configuration class:
+- 为 ID token 的 JWT decoder 建立缓存（每个 ID token issuer 只实例化一个 decoder）。为此，在配置类中添加以下代码：
 ```java
 private static final Map<String, JwtDecoder> idTokenDecoders = new ConcurrentHashMap<>();
 
@@ -98,8 +97,8 @@ private JwtDecoder getJwtDecoder(Map<String, Object> accessClaims) {
 }
 ```
 
-## 4. Application Properties 
-Nothing really special here, just the usual Spring Boot and spring-addons configuration (accepting identities from 3 different trusted issuers):
+## 4. 应用配置属性
+这里没有什么特别之处，只是常规的 Spring Boot 和 spring-addons 配置（接受来自 3 个不同受信任 issuer 的身份）：
 ```yaml
 com:
   c4-soft:
@@ -122,8 +121,8 @@ com:
           - path: $.permissions
 ```
 
-## 5. Sample `@RestController`
-Please note that OpenID standard claims can be accessed with getters (instead of Map<String, Object> like with JwtAuthenticationToken for instance)
+## 5. 示例 `@RestController`
+请注意，OpenID 标准 claim 可以通过 getter 访问（而不像 `JwtAuthenticationToken` 那样使用 `Map<String, Object>`）：
 ``` java
 @RestController
 @PreAuthorize("isAuthenticated()")
@@ -133,8 +132,8 @@ public class GreetingController {
 	public MessageDto getGreeting(MyAuth auth) {
 		return new MessageDto(
 				"Hi %s! You are granted with: %s.".formatted(
-						auth.getIdClaims().getEmail(), // From ID token in X-ID-Token header
-						auth.getAuthorities())); // From access token in Authorization header
+						auth.getIdClaims().getEmail(), // 来自 X-ID-Token 请求头中的 ID token
+						auth.getAuthorities())); // 来自 Authorization 请求头中的 access token
 	}
 
 	static record MessageDto(String body) {
@@ -142,9 +141,9 @@ public class GreetingController {
 }
 ```
 
-## 6. Conclusion
-This sample was guiding you to build a servlet application (webmvc) with security data extracted from both access token and a custom header.
+## 6. 总结
+本示例引导你构建了一个从 access token 和自定义请求头两处提取安全数据的 servlet（webmvc）应用。
 
-For a reactive application (webflux), the main differences would be:
-- using `spring-addons-webflux-jwt-resource-server` as dependency (instead of `spring-addons-webmvc-jwt-resource-server`)
-- retrieve ID token from headers using `ServerHttpRequestSupport` instead of `HttpServletRequestSupport`
+对于响应式（webflux）应用，主要区别在于：
+- 使用 `spring-addons-webflux-jwt-resource-server` 作为依赖（替代 `spring-addons-webmvc-jwt-resource-server`）
+- 使用 `ServerHttpRequestSupport`（替代 `HttpServletRequestSupport`）从请求头中获取 ID token

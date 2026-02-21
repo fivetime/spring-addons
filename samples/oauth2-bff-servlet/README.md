@@ -1,8 +1,8 @@
 # Servlet OAuth2 BFF
-Sample for an OAuth2 BFF using the WebMvc (aka servlet or synchronized) version of Spring Cloud Gateway.
+使用 WebMvc（即 servlet/同步）版本的 Spring Cloud Gateway 实现 OAuth2 BFF 的示例。
 
-The Javascript UI is written with JQuery and included in a Thymeleaf template.
+Javascript UI 使用 JQuery 编写，并嵌入在 Thymeleaf 模板中。
 
-As logout (made with a POST) and PUT request are made with ajax (XHR), the CSRF protection is configured with `HttpOnly=flase` cookies.
+由于登出（通过 POST 发送）和 PUT 请求均通过 ajax（XHR）发起，CSRF 保护配置为使用 `HttpOnly=false` 的 cookie。
 
-The `webmvc-jwt-default` module can be used as _"downstream micro-service"_.
+`webmvc-jwt-default` 模块可用作*"下游微服务"*。

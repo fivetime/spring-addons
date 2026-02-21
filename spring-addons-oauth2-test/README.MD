@@ -1,33 +1,33 @@
-# Unit & Integration Testing With Security
-Testing method security (`@PreAuthorize`, `@PostFilter`, etc.) requires to configure the security context. `Spring-security-test` provides with `MockMvc` request post-processors and `WebTestClient` mutators to do so, but this requires the context of a request, which limits its usage to testing secured controllers.
+# 带安全上下文的单元测试与集成测试
+测试方法级安全（`@PreAuthorize`、`@PostFilter` 等）需要配置 security context。`spring-security-test` 提供了 `MockMvc` 请求后处理器和 `WebTestClient` mutator 来实现这一点，但它们只能在请求上下文中工作，因此仅适用于测试受保护的 controller。
 
-To test method security on any type of `@Component` (`@Controller`, off course, but also `@Service` and `@Repository`) there are  only two options: build tests security context by yourself and populate it with stubbed / mocked authentications, or use annotations to do it for you. **This lib contains annotations to configure test security context with OAuth2 authentication at your hand.**
+要测试任意类型的 `@Component`（`@Controller` 当然可以，`@Service` 和 `@Repository` 也不例外）上的方法级安全，只有两种选择：自行构建测试 security context 并用 stub / mock 的 authentication 填充它，或者使用注解来代劳。**本库提供了注解，可直接在测试 security context 中配置 OAuth2 认证。**
 
-## Which Annotation to Use
+## 应该使用哪个注解
 
-`@WithMockAuthentication` should be enough to test any kind of OAuth2 application with RBAC (role-based access control): it allows to easily define `name` and `authorities`, as well as the Authentication a principal types to mock if your application code expects something specific.
+`@WithMockAuthentication` 足以测试任何使用 RBAC（基于角色的访问控制）的 OAuth2 应用：它可以方便地定义 `name` 和 `authorities`，以及在应用代码需要特定类型时要 mock 的 Authentication principal 类型。
 
-In the case where your access-control uses more than just name and authorities, you'll probably need to define claim-set details. In this case:
-- on an `oauth2ResourceServer`, `@WithJwt` and `@WithOpaqueToken` which build the authentication instance **using a JSON payload from the classpath** and the authentication converter in the context (see the [Important warning](#important) below).
-- on a client with `oauth2Login`, `@WithOAuth2Login` and `@WithOidcLogin`
+如果你的访问控制不只依赖 name 和 authorities，还需要定义 claim-set 的详细内容，则可以选择：
+- 在 `oauth2ResourceServer` 上，使用 `@WithJwt` 和 `@WithOpaqueToken`，它们使用 **classpath 中的 JSON payload** 和上下文中的 authentication converter 来构建 authentication 实例（见下方的[重要警告](#important)）
+- 在使用 `oauth2Login` 的 client 上，使用 `@WithOAuth2Login` 和 `@WithOidcLogin`
 
-## Getting started
+## 快速上手
 
-An [article covering the usage of OAuth2 test annotations from this lib](https://www.baeldung.com/spring-oauth-testing-access-control) was published on Baeldung.
+Baeldung 上发布了一篇[介绍本库中 OAuth2 测试注解用法的文章](https://www.baeldung.com/spring-oauth-testing-access-control)。
 
-This, along with all [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) and [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) source-code (which contain a lot of unit and integration testing), should be enough to get you started.
+结合所有 [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) 和 [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) 源码（包含大量单元测试和集成测试），应该足以帮你快速上手。
 
-You might also have a look at the [Sample section](#sample) below.
+也可以参考下方的[示例](#sample)章节。
 
-## <a name="important"/>Important warning
-**`@WithJwt` and `@WithMockJwtAuth` require custom authentication converter to be exposed as a @Bean** (instead of inlining it with a lambda in the `SecurityFilterChain` definition). The authentication factory needs this bean to build the same Authentication instance as you would get at runtime.
+## <a name="important"/>重要警告
+**`@WithJwt` 和 `@WithMockJwtAuth` 要求将自定义 authentication converter 暴露为 `@Bean`**（而非在 `SecurityFilterChain` 定义中以 lambda 内联的方式提供）。认证工厂需要通过这个 bean 来构建与运行时完全相同的 Authentication 实例。
 
-`spring-addons-starter-oidc` exposes the authentication converter as a bean, bust most samples from the wenb using just `spring-boot-starter-oauth2-resource-server` don't.
+`spring-addons-starter-oidc` 会将 authentication converter 暴露为 bean，但网上大多数仅使用 `spring-boot-starter-oauth2-resource-server` 的示例并不会这样做。
 
-In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
+实践上，不要将 authentication converter 内联在 `SecurityFilterChain` 定义中，而应使用如下方式：
 ```java
 @Bean
-// It is important that what implements Converter<Jwt, AbstractAuthenticationToken> is exposed as a @Bean
+// 实现 Converter<Jwt, AbstractAuthenticationToken> 的类必须暴露为 @Bean，这一点很重要
 JwtAuthenticationConverter authenticationConverter() {
     final var authenticationConverter = new JwtAuthenticationConverter();
     authenticationConverter.setPrincipalClaimName(StandardClaimNames.PREFERRED_USERNAME);
@@ -44,18 +44,18 @@ JwtAuthenticationConverter authenticationConverter() {
 }
 
 @Bean
-// This bean can then be injected in your SecurityFilterChain as follow
+// 该 bean 随后可以按如下方式注入 SecurityFilterChain
 SecurityFilterChain securityFilterCHain(HttpSecurity http, Converter<Jwt, AbstractAuthenticationToken> authenticationConverter) throws Exception {
     http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(authenticationConverter)));
     ...
     return http.build();
 }
 ```
-This is important for the factory behinf the test annotation to get this authentication converter from the test context (and use it to build the `Authentication` instance it puts in the test security context).
+这样做是为了让测试注解背后的工厂能从测试上下文中获取此 authentication converter（并用它构建放入测试 security context 的 `Authentication` 实例）。
 
-## <a name="sample"/>Sample
+## <a name="sample"/>示例
 
-Let's consider the following secured `@Service`
+假设有如下受保护的 `@Service`：
 ```java
 @Service
 public class SecuredService {
@@ -70,11 +70,11 @@ public class SecuredService {
     }
 }
 ```
-Now, let's assume that you have a staging environment with a few representative users ("personas" if you are familiar with UX), for which you can get sample access tokens, and dump the claims in JSON files in test resources in (by decoding JWTs with a tool like https://jwt.io or introspecting opaque tokens). In the following, we'll consider you have a user named `brice` with `NICE` authority and another one named `igor` without the `NICE` authority. We'll also consider you have dumped sample claim-sets in `src/test/resources/brice.json` and `src/test/resources/igor.json`.
+现在，假设你有一个预发布环境，其中有几个有代表性的用户（如果你熟悉 UX，可以理解为"用户画像"），可以获取这些用户的 access token 样本，并将 claim 转储为 JSON 文件放在测试资源目录中（通过 https://jwt.io 等工具解码 JWT，或通过 introspection 解析 opaque token）。以下示例假设有一个名为 `brice`、拥有 `NICE` authority 的用户，以及另一个名为 `igor`、没有 `NICE` authority 的用户，并且已将 claim-set 样本分别保存至 `src/test/resources/brice.json` 和 `src/test/resources/igor.json`。
 
-### Using `@WithMockAuthentication`
+### 使用 `@WithMockAuthentication`
 
-When testing RBAC (role-based access control), defining just authorities is frequently enough. Sometimes, defining the `Authentication#name` is necessary and in a few cases, application code needs a specific `Authentication` implementation. `@WithMockAuthentication` was designed to meet these requirements:
+在测试 RBAC（基于角色的访问控制）时，仅定义 authorities 通常就已足够。有时需要定义 `Authentication#name`，少数情况下应用代码还需要特定的 `Authentication` 实现。`@WithMockAuthentication` 正是为满足这些需求而设计的：
 ```java
 @SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
 class MessageServiceTests {
@@ -104,15 +104,15 @@ class MessageServiceTests {
 }
 ```
 
-### Using `@WithJwt` or `@WithOpaqueToken` with JSON claim-sets
+### 使用 `@WithJwt` 或 `@WithOpaqueToken` 配合 JSON claim-set
 
-`@WithJwt` and `@WithOpaqueToken` enable to load those claim-sets and turn it into `Authentication` instances.
+`@WithJwt` 和 `@WithOpaqueToken` 可以加载上述 claim-set 文件并将其转换为 `Authentication` 实例。
 
-For the Authentication to be built as at runtime (type, authorities, name, claims, etc.), `@WithJwt` uses your `Converter<Jwt, ? extends AbstractAuthenticationToken>` and `@WithOpaqueToken` the `OpaqueTokenAuthenticationConverter` (or the reactive counterparts in reactive apps).
+为了让 Authentication 的构建方式与运行时一致（类型、authorities、name、claims 等），`@WithJwt` 使用你的 `Converter<Jwt, ? extends AbstractAuthenticationToken>`，`@WithOpaqueToken` 使用 `OpaqueTokenAuthenticationConverter`（响应式应用中使用对应的响应式版本）。
 
-For the wiring to happen correctly, you need to import `AuthenticationFactoriesTestConf` (it is already imported when using one of `@AddonsWebmvcComponentTest`, `AutoConfigureAddonsWebmvcClientSecurity`, `AutoConfigureAddonsWebmvcResourceServerSecurity` or their reactive counterparts).
+为使自动装配正常工作，需要导入 `AuthenticationFactoriesTestConf`（使用 `@AddonsWebmvcComponentTest`、`AutoConfigureAddonsWebmvcClientSecurity`、`AutoConfigureAddonsWebmvcResourceServerSecurity` 或其响应式对应版本时已自动导入）：
 ```java
-@Import(AuthenticationFactoriesTestConf.class) // when using spring-addons-oauth2-test but not spring-addons-starter-oidc
+@Import(AuthenticationFactoriesTestConf.class) // 使用 spring-addons-oauth2-test 但未使用 spring-addons-starter-oidc 时需要
 @SpringBootTest(classes = { SecurityConfig.class, MessageService.class })
 class MessageServiceTests {
 
@@ -145,18 +145,18 @@ class MessageServiceTests {
 	}
 }
 ```
-There are we few things worth noting above:
-- we are testing a `@Service` having methods decorated with `@PreAuthorize`, without `MockMvc` or `WebTestClient` (and their request post-processors or mutators)
-- authorities and username will be coherent with claims during tests (it is not necessarily the case when we declare the 3 separately as done with MockMvc request post-processors and WebTestClient mutators). `WithJwt.AuthenticationFactory` uses the JWT authorities converter found in security configuration. As a consequence, `username` and `authorities` are resolved from claims, just as it is at runtime.
-- the claims are loaded from a JSON files in the test classpath
-- we are using JUnit 5 `@ParameterizedTest`: the test will run once for each of the authentication in the stream provided  by the `identities` method
-- annotations fit so well with BDD (given-when-then): the test pre-conditions (given) are decorating the test instead of cluttering its content like MockMvc request post-processors and WebTestClient mutators do
-- annotations can be very brief and expressive
+上述代码有几点值得关注：
+- 我们在测试一个方法上带有 `@PreAuthorize` 的 `@Service`，完全不依赖 `MockMvc` 或 `WebTestClient`（及其请求后处理器或 mutator）
+- 测试过程中 authorities 和 username 与 claims 保持一致（而使用 MockMvc 请求后处理器和 WebTestClient mutator 分别声明这三者时不一定能保证一致）。`WithJwt.AuthenticationFactory` 会使用 security 配置中的 JWT authorities converter，因此 `username` 和 `authorities` 与运行时一样从 claims 中解析得出
+- claims 从测试 classpath 中的 JSON 文件加载
+- 使用了 JUnit 5 的 `@ParameterizedTest`：测试会对 `identities` 方法返回的 stream 中的每个 authentication 各执行一次
+- 注解与 BDD（given-when-then）风格完美契合：测试的前置条件（given）通过注解装饰测试方法，而非像 MockMvc 请求后处理器和 WebTestClient mutator 那样混在测试内容中
+- 注解可以非常简洁且富有表达力
 
-**Important warning for those using `@WithJwt` (and since `7.3.0`, `@WithMockJwtAuth`) but not `spring-addons-starter-oidc`**: you should expose your JWT converter as a bean. In practice, instead of inlining the authentication converter in the `SecurityFilterChain` definition, use something like:
+**使用 `@WithJwt`（以及自 `7.3.0` 起的 `@WithMockJwtAuth`）但未使用 `spring-addons-starter-oidc` 的重要提醒**：应将 JWT converter 暴露为 bean。实践上，不要将 authentication converter 内联在 `SecurityFilterChain` 定义中，而应使用如下方式：
 ```java
 @Bean
-// It is important that what implements Converter<Jwt, AbstractAuthenticationToken> is exposed as a @Bean
+// 实现 Converter<Jwt, AbstractAuthenticationToken> 的类必须暴露为 @Bean，这一点很重要
 JwtAuthenticationConverter authenticationConverter() {
     final var authenticationConverter = new JwtAuthenticationConverter();
     authenticationConverter.setPrincipalClaimName(StandardClaimNames.PREFERRED_USERNAME);
@@ -173,11 +173,11 @@ JwtAuthenticationConverter authenticationConverter() {
 }
 
 @Bean
-// This bean can then be injected in your SecurityFilterChain as follow
+// 该 bean 随后可以按如下方式注入 SecurityFilterChain
 SecurityFilterChain securityFilterCHain(HttpSecurity http, Converter<Jwt, AbstractAuthenticationToken> authenticationConverter) throws Exception {
     http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(authenticationConverter)));
     ...
     return http.build();
 }
 ```
-This is important for the test annotation to get this authentication converter from the test context (and use it to build the `Authentication` instance it puts in the test security context).
+这样做是为了让测试注解能从测试上下文中获取此 authentication converter（并用它构建放入测试 security context 的 `Authentication` 实例）。

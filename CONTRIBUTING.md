@@ -1,42 +1,39 @@
-# Contributing
-Thanks for considering to contribute!
+# 贡献指南
+感谢你考虑为本项目做出贡献！
 
-## Code of conduct
-Examples of behavior that contributes to creating a positive environment include:
-- Using welcoming and inclusive language
-- Being respectful of differing viewpoints and experiences
-- Gracefully accepting constructive criticism
-- Focusing on what is best for the community
-- Showing empathy towards other community members
+## 行为准则
+有助于营造积极环境的行为示例包括：
+- 使用热情、包容的语言
+- 尊重不同的观点和经验
+- 优雅地接受建设性批评
+- 以社区利益为先
+- 对其他社区成员展现同理心
 
-Examples of unacceptable behavior by participants include:
-- The use of sexualized language or imagery and unwelcome sexual attention or advances
-- Trolling, insulting/derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or electronic address, without explicit permission
-- Other conduct which could reasonably be considered inappropriate in a professional setting
+参与者不可接受的行为示例包括：
+- 使用性化语言或图像，以及不受欢迎的性关注或挑逗
+- 网络骚扰、侮辱性/贬低性评论，以及人身攻击或政治攻击
+- 公开或私下骚扰他人
+- 未经明确许可，发布他人的私人信息（如实际地址或电子邮件地址）
+- 其他在专业环境中可被合理认定为不当的行为
 
-This Code of Conduct is adapted from the [Contributor Covenant](http://contributor-covenant.org/), version 1.4, available at http://contributor-covenant.org/version/1/4
+本行为准则改编自 [Contributor Covenant](http://contributor-covenant.org/) 1.4 版本，详见 http://contributor-covenant.org/version/1/4
 
-## How to Contribute
-### Create an Issue
-Reporting an issue or making a feature request is a great way to contribute. 
-Your feedback and the conversations that result from it provide a continuous flow of ideas.
-However, before creating a ticket, please take the time to ask and research first.
+## 如何贡献
+### 提交 Issue
+报告问题或提出功能请求是贡献的好方式。你的反馈以及由此引发的讨论会持续带来新的想法。但在创建 issue 之前，请先花时间搜索和研究，确认问题尚未被讨论过。
 
-### Submit a Pull Request
-Should you create an issue first? No, just create the pull request and use the description to provide context and motivation, as you would for an issue.
-If you want to start a discussion first or have already created an issue, once a pull request is created, we will close the issue as superseded by the pull request, and the discussion about the issue will continue under the pull request.
+### 提交 Pull Request
+需要先创建 issue 吗？不需要，直接创建 pull request，并在描述中说明背景和动机即可，就像写 issue 一样。如果你想先发起讨论，或者已经创建了 issue，一旦 pull request 创建后，我们会将该 issue 关闭并标记为被 pull request 取代，后续讨论将在 pull request 下继续进行。
 
-Always check out the main branch and submit pull requests against it. Backports to prior versions will be considered on a case-by-case basis and reflected as the fix version in the issue tracker.
+请始终基于主分支检出代码，并将 pull request 提交到主分支。针对旧版本的 backport 将视具体情况逐一评估，并在 issue 跟踪器中以修复版本的形式体现。
 
-Choose the granularity of your commits consciously and squash commits that represent multiple edits or corrections of the same logical change. See Rewriting History section of Pro Git for an overview of streamlining the commit history.
+请有意识地控制提交的粒度，将代表同一逻辑变更的多次编辑或修正合并为一个提交。关于整理提交历史的概述，请参阅《Pro Git》的"重写历史"章节。
 
-If there is a prior issue, reference the GitHub issue number in the description of the pull request.
+如果有关联的 issue，请在 pull request 的描述中引用对应的 GitHub issue 编号。
 
-If accepted, your contribution may be heavily modified as needed prior to merging. You will likely retain author attribution for your Git commits granted that the bulk of your changes remain intact. You may also be asked to rework the submission.
+如果你的贡献被接受，在合并之前可能会根据需要进行大幅修改。只要你的主要变更保持完整，你通常仍会保留 Git 提交的作者署名。你也可能会被要求对提交进行修改。
 
-If asked to make corrections, simply push the changes against the same branch, and your pull request will be updated. In other words, you do not need to create a new pull request when asked to make changes.
+如果被要求更正，只需将更改推送到同一分支，你的 pull request 会自动更新。换句话说，被要求修改时无需重新创建新的 pull request。
 
-## Build from source
-`mvn install` with Maven 3 and JDK 17 or above should be enough to build, run tests and package.
+## 从源码构建
+使用 Maven 3 和 JDK 17 或以上版本执行 `mvn install`，即可完成构建、运行测试和打包。

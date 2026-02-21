@@ -1,19 +1,19 @@
-# Reactive Resource Server With JWT Decoder Using `spring-addons-starter-oidc`
-In this sample, we use a thin wrapper around `spring-boot-starter-oauth2-resource-server` to configure a Spring Boot 3 reactive (WebFlux) resource server using almost only application properties.
+# 使用 `spring-addons-starter-oidc` 的响应式 Resource Server（JWT Decoder）
+本示例使用对 `spring-boot-starter-oauth2-resource-server` 的轻量封装，几乎仅通过应用配置属性来配置一个 Spring Boot 3 响应式（WebFlux）resource server。
 
-## 0. Disclaimer
-There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+## 0. 免责声明
+本仓库示例数量较多，所有示例均纳入 CI 以确保代码可编译且测试全部通过。遗憾的是，此 README 不会随源码变更自动更新。请将其作为理解源码的参考指引。**如需复制代码，请务必从源码中复制，而非从此 README 中复制。**
 
-## 1. Dependencies
-As usual, we'll start with http://start.spring.io/ adding the following dependencies:
+## 1. 依赖配置
+与往常一样，从 http://start.spring.io/ 开始，添加以下依赖：
 - Spring Reactive Web
 - OAuth2 Resource Server
 - Spring Boot Actuator
-- lombok
+- Lombok
 
-Then add dependencies to spring-addons:
+然后添加 spring-addons 相关依赖：
 - [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc)
-- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test) with `test` scope
+- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test)（`test` scope）
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
@@ -28,10 +28,10 @@ Then add dependencies to spring-addons:
 </dependency>
 ```
 
-## 2. Application Properties
-As stated in preamble, most configuration stands in properties. Let's detail what we have in yaml file.
+## 2. 应用配置属性
+如前言所述，大部分配置都在属性文件中。下面逐一解析 yaml 文件的内容。
 
-The First part defines constants to be reused later in configuration:
+第一部分定义了后续配置中复用的常量：
 ```yaml
 scheme: http
 origins: ${scheme}://localhost:4200
@@ -41,15 +41,15 @@ cognito-issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_RzhmgLwjl
 auth0-issuer: https://dev-ch4mpy.eu.auth0.com/
 ```
 
-Now, the core of spring-addons configuration with:
-- 3 trusted OIDC Providers (issuers) with for each:
-  * `location`: the issuer URI (must be exactly the same as in access token `iss` claim). It is used to fetch OpenID configuration and resolve the authentication manager for a request
-  * `username-claim`: necessary only to use something else than `sub` claim
-  * `authorities`: authorities mapping configuration, for each claim to use (JSON path, case transformation and prefix)
-- path matchers for resources accessible to all requests, including anonymous ones (path not matched here require users to be authenticated)
-- sessions are left stateless (disabled), the default for spring-addons resource servers
-- CSRF protection is left disabled, the default for spring-addons when sessions are stateless
-- the spring-addons default behavior for resource server of returning 401 (unauthorized) instead of 302 (redirect to login) when authentication is missing or invalid, is kept too
+接下来是 spring-addons 的核心配置，包括：
+- 3 个受信任的 OIDC Provider（issuer），每个配置：
+  * `location`：issuer URI（必须与 access token `iss` claim 中的值完全一致），用于获取 OpenID 配置并为请求解析 authentication manager
+  * `username-claim`：仅在需要使用 `sub` claim 以外的字段时配置
+  * `authorities`：authority 映射配置，包括要使用的每个 claim（JSON path、大小写转换和前缀）
+- 允许所有请求（包括匿名请求）访问的资源路径匹配器（未匹配的路径要求用户已认证）
+- session 保持无状态（禁用），这是 spring-addons resource server 的默认行为
+- CSRF 保护保持禁用，这是 spring-addons 在 session 无状态时的默认行为
+- 同样保留 spring-addons resource server 的默认行为：当认证缺失或无效时返回 401（未授权），而非 302（重定向到登录页）
 ```yaml
 com:
   c4-soft:
@@ -78,10 +78,10 @@ com:
           - "/v3/api-docs/**"
 ```
 
-## 3. Java Configuration
-An auto-configured `SecurityWebFilterChain` is provided by `spring-addons-webflux-jwt-resource-server`.
+## 3. Java 配置
+`spring-addons-webflux-jwt-resource-server` 提供了自动配置的 `SecurityWebFilterChain`。
 
-When using just method security, no additional conf is needed. But for demonstration purposes, we'll add access control in Java conf:
+仅使用方法级安全时无需额外配置。但为了演示目的，我们在 Java 配置中添加访问控制：
 ```java
 @EnableReactiveMethodSecurity()
 @Configuration
@@ -95,18 +95,18 @@ public class SecurityConfig {
 }
 ```
 
-## 4. `@RestController`, `@Service` and `@Repository`
-Really nothing special there, just standard Spring components with method security. Copy from the source if you are using this README as a tutorial to reproduce the sample.
+## 4. `@RestController`、`@Service` 和 `@Repository`
+这部分没有什么特别之处，只是带有方法级安全的标准 Spring 组件。如果你把此 README 作为复现示例的教程，请从源码中复制代码。
 
-## 5. Testing
-Source code contains unit and integration testing for all access control rules. This covers `@Controller` off course, but also `@Service` and `@Repository` (the later two being impossible with OAuth2 and just `spring-security-test`). Make sure you give it an eye.
+## 5. 测试
+源码包含针对所有访问控制规则的单元测试和集成测试，涵盖 `@Controller`，也包括 `@Service` 和 `@Repository`（后两者在仅使用 `spring-security-test` 的 OAuth2 场景下无法测试）。请务必仔细查阅。
 
-## 6. Conclusion
-In this sample, we used `spring-addons-starter-oidc`, in addition to `spring-boot-starter-oauth2-resource-server`, to configure a reactive (WebFlux) Spring Boot 3 resource server using possibly only application properties with:
-- stateless session management
-- disabled CSRF (because of disabled sessions)
-- multi-tenancy (accept identities from several trusted OIDC Providers)
-- expected HTTP status for unauthorized requests
-- basic access control to fine tune with method security
+## 6. 总结
+在本示例中，我们在 `spring-boot-starter-oauth2-resource-server` 的基础上使用 `spring-addons-starter-oidc`，几乎仅通过应用配置属性就配置好了一个 Spring Boot 3 响应式（WebFlux）resource server，实现了：
+- 无状态 session 管理
+- 禁用 CSRF（因为 session 已禁用）
+- 多租户（接受来自多个受信任 OIDC Provider 的身份）
+- 未授权请求的预期 HTTP 状态码
+- 可通过方法级安全进一步精调的基础访问控制
 
-Isn't it Bootiful?
+是不是很 Bootiful？

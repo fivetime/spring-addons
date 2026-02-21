@@ -1,10 +1,10 @@
-# spring-boot starter for Google reCAPTCHA validation
-Tiny lib to verify Google reCAPTCHA submitted by clients to spring-boot apps.
+# 用于 Google reCAPTCHA 验证的 Spring Boot Starter
+用于在 Spring Boot 应用中验证客户端提交的 Google reCAPTCHA 的轻量级库。
 
-## Usage
-Thanks to `@AutoConfiguration` magic, only 3 very simple steps are needed:
+## 使用方法
+得益于 `@AutoConfiguration` 的魔力，只需三个简单步骤：
 
-### Put this library on your classpath
+### 将本库添加到 classpath
 ```xml
         <dependency>
             <groupId>com.c4-soft.springaddons.starter</groupId>
@@ -13,14 +13,14 @@ Thanks to `@AutoConfiguration` magic, only 3 very simple steps are needed:
         </dependency>
 ```
 
-### Declare a few properties (`secret-key` value is to be retrieved from https://www.google.com/recaptcha/admin/site)
+### 声明几个配置属性（`secret-key` 的值需从 https://www.google.com/recaptcha/admin/site 获取）
 ```properties
 com.c4-soft.springaddons.recaptcha.secret-key=machin
 com.c4-soft.springaddons.recaptcha.siteverify-url=https://localhost/recaptcha/api/siteverify
 com.c4-soft.springaddons.recaptcha.v3-threshold=0.8
 ```
 
-### Inject `ReCaptchaValidationService` where you need it
+### 在需要的地方注入 `ReCaptchaValidationService`
 ```java
 @RestController
 @RequestMapping("/greet")
@@ -35,11 +35,11 @@ public class GreetingController {
 }
 ```
 
-## Proxy configuration
+## 代理配置
 
-This library depends on `spring-addons-starters-webclient` to issue HTTP requests to validation server. As so, you can configure proxy settings from `com.c4-soft.springaddons.proxy.*` properties or `HTTP_PROXY` and `NO_PROXY` standard env variables:
+本库依赖 `spring-addons-starters-webclient` 向验证服务器发起 HTTP 请求。因此，可以通过 `com.c4-soft.springaddons.proxy.*` 配置属性或 `HTTP_PROXY`、`NO_PROXY` 标准环境变量来配置代理：
 ```properties
 com.c4-soft.springaddons.proxy.hostname=http://localhost
 com.c4-soft.springaddons.proxy.port=8080
-# More from IDE auto-completion
+# 更多配置项请通过 IDE 自动补全查看
 ```

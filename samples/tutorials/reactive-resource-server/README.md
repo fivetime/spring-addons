@@ -1,20 +1,19 @@
-# Configure a Reactive OAuth2 Resource Server (REST API)
-In this tutorial, we'll configure a reactive (WebFlux) Spring Boot 3 application as an OAuth2 resource server with authorities mapping to enable RBAC using roles defined on OIDC Providers, *without `spring-addons-starter-oidc`**, which makes quite more verbose compared to the "webflux" projects in samples.
+# 配置响应式 OAuth2 Resource Server（REST API）
+在本教程中，我们将一个响应式（WebFlux）Spring Boot 3 应用配置为 OAuth2 resource server，并映射 authorities 以使用 OIDC Provider 上定义的角色实现 RBAC，*不使用 `spring-addons-starter-oidc`*——这使得配置比 samples 中的"webflux"项目要冗长得多。
 
-We'll also see how to accept access tokens issued by several, potentially heterogeneous, OIDC Providers (or Keycloak realms).
+我们还将了解如何接受由多个（可能异构的）OIDC Provider（或 Keycloak realm）签发的 access token。
 
-## 0. Disclaimer
-There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+## 0. 免责声明
+本仓库示例数量较多，所有示例均纳入 CI 以确保代码可编译且测试全部通过。遗憾的是，此 README 不会随源码变更自动更新。请将其作为理解源码的参考指引。**如需复制代码，请务必从源码中复制，而非从此 README 中复制。**
 
-## 1. Project Initialization
-We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites), and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on each OP.
-As usual, we'll start with http://start.spring.io/ adding the following dependencies:
+## 1. 项目初始化
+本教程在完成[前置条件](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites)之后开始，假设至少已配置 1 个 OIDC Provider（2 个更好），并且每个 OP 上都有拥有和没有 `NICE` 角色的用户。与往常一样，从 http://start.spring.io/ 开始，添加以下依赖：
 - Spring Reactive Web
 - OAuth2 Resource Server
-- lombok
+- Lombok
 
 ## 2. REST Controller
-We'll use a very simple controller, just accessing basic `Authentication` properties:
+我们使用一个非常简单的 controller，仅访问基本的 `Authentication` 属性：
 ```java
 @RestController
 public class GreetingController {
@@ -28,21 +27,21 @@ public class GreetingController {
     }
 }
 ```
-This is enough to demo that the username and roles are mapped from different claims depending on the authorization-server which issued the access token (Keycloak, Auth0 or Cognito).
+这足以演示：根据签发 access token 的授权服务器不同（Keycloak、Auth0 或 Cognito），用户名和角色会从不同的 claim 中映射而来。
 
-## 3 Security Configuration
-This is how we want our REST API to be configured:
-- use OAuth2 for requests authorization
-- accept identities issued by 3 different OIDC authorization-servers (Keycloak, Auth0 and Cognito)
-- enabled CORS (with configurable allowed origins)
-- state-less session management (no session, user state in access token only)
-- disabled CSRF (safe because there is no session)
-- public access to a limited list of resources
-- non "public" routes require users to be authenticated, fine-grained access-control being achieved with method-security (`@PreAuthrorize` and alike)
-- 401 (unauthorized) instead 302 (redirecting to login) when a request to a protected resource is made with missing or invalid authorization
+## 3. Security 配置
+我们希望 REST API 的配置如下：
+- 使用 OAuth2 进行请求授权
+- 接受来自 3 个不同 OIDC 授权服务器（Keycloak、Auth0 和 Cognito）签发的身份
+- 启用 CORS（allowed origins 可配置）
+- 无状态 session 管理（无 session，用户状态仅存在于 access token 中）
+- 禁用 CSRF（因为没有 session，所以是安全的）
+- 有限的资源列表允许公开访问
+- 非"公开"路由要求用户已认证，细粒度访问控制通过方法级安全（`@PreAuthorize` 等）实现
+- 对受保护资源的请求在授权缺失或无效时返回 401（未授权），而非 302（重定向到登录页）
 
-## 3.1. Security Properties
-Let's replace our `application.properties` file with an `application.yml` having the following content:
+## 3.1. Security 配置属性
+将 `application.properties` 替换为内容如下的 `application.yml`：
 ```yaml
 scheme: http
 origins: http://localhost:4200,https://localhost:4200
@@ -100,16 +99,16 @@ spring:
         jwt:
           issuer-uri: ${cognito-issuer}
 ```
-There are a few things worth noting here:
-- `spring.security.oauth2.resourceserver.jwt.issuer-uri` is single valued. This means that Spring Boot accepts OAuth2 identities issued only by a single OIDC Provider at a time. We use profiles to switch our resource server from one OP to another. This requires a restart, but we'll see how to configure spring-security to accept identities from several OIDC Providers in a single resource server instance.
-- there are values (issuer URIs) which need an edit with what was obtained when accomplishing [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites).
+以下几点值得注意：
+- `spring.security.oauth2.resourceserver.jwt.issuer-uri` 是单值配置，这意味着 Spring Boot 一次只能接受来自单个 OIDC Provider 签发的 OAuth2 身份。我们通过 profile 在不同 OP 之间切换，这需要重启，但我们后面会介绍如何配置 spring-security 让单个 resource server 实例同时接受来自多个 OIDC Provider 的身份。
+- 其中有些值（issuer URI）需要替换为完成[前置条件](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites)时获取的实际值。
 
-### 3.2. Security Filter-Chain
-As development and production environments will likely allow different origins, we need a CORS configuration function taking allowed-origins as parameter.
+### 3.2. Security Filter Chain
+由于开发和生产环境允许的 origin 可能不同，我们需要一个以 allowed-origins 为参数的 CORS 配置函数。
 
-Also, when a request to a protected resource is made with a missing or invalid authorization the HTTP status should be 401 (`Unauthorized`) but, by default, Spring returns 302 (redirect to login, which makes no sense on a resource server). To change that, we'll have to write an access denied handler.
+另外，当对受保护资源的请求缺少或携带无效授权时，HTTP 状态码应为 401（`Unauthorized`），但 Spring 默认返回 302（重定向到登录页，这在 resource server 上毫无意义）。要修改这一行为，我们需要编写一个 access denied handler。
 
-Let's put our security configuration together and provide a security filter-chain bean complying with all our specifications:
+将安全配置整合到一起，提供一个满足所有规范的 security filter chain bean：
 ```java
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
@@ -125,19 +124,18 @@ public class WebSecurityConfig {
 
         http.cors(cors -> cors.configurationSource(corsConfigurationSource(origins)));
 
-        // State-less session (state in access token only)
+        // 无状态 session（状态仅存在于 access token 中）
         http.securityContextRepository(NoOpServerSecurityContextRepository.getInstance());
 
-        // Disable CSRF because of state-less session-management
+        // 因为 session 是无状态的，禁用 CSRF
         http.csrf().disable();
 
-        // Return 401 (unauthorized) instead of 302 (redirect to login) when
-        // authorization is missing or invalid
+        // 授权缺失或无效时返回 401（未授权），而非 302（重定向到登录页）
         http.exceptionHandling(exceptionHandling -> {
             exceptionHandling.accessDeniedHandler(accessDeniedHandler());
         });
 
-        // If SSL enabled, disable http (https only)
+        // 如果启用了 SSL，禁用 http（仅允许 https）
         if (serverProperties.getSsl() != null && serverProperties.getSsl().isEnabled()) {
             http.redirectToHttps();
         }
@@ -172,20 +170,20 @@ public class WebSecurityConfig {
 }
 ```
 
-### 3.3. Authorities Mapping
-As a reminder, the `scope` of a token defines what a resource-owner allowed an OAuth2 client to do on his behalf, where "roles" are a way to represent what a resource-owner himself is allowed to do on resource servers.
+### 3.3. Authorities 映射
+提醒一下，token 的 `scope` 定义的是 resource-owner 允许 OAuth2 client 代表其执行的操作，而"角色"则是表示 resource-owner 自身在 resource server 上被允许执行的操作的一种方式。
 
-RBAC is a very common pattern for access-control, but neither OAuth2 nor OpenID define a standard representation for "roles". Each vendor implements it with its own private-claim(s).
+RBAC 是一种非常常见的访问控制模式，但 OAuth2 和 OpenID 都没有定义"角色"的标准表示方式。每个厂商都用自己的私有 claim 来实现。
 
-Spring Security default authorities mapper, which maps from the `scope` claim, adding the `SCOPE_` prefix, won't satisfy to our needs (unless we twisted the usage of the `scope` claim on the authorization-server to contain user roles, of course).
+Spring Security 默认的 authorities mapper 从 `scope` claim 中映射并添加 `SCOPE_` 前缀，这不能满足我们的需求（除非在授权服务器上将 `scope` claim 的用途扭曲为包含用户角色）。
 
-We'll implement a mapping of Spring Security authorities from OpenID private claims with the following specifications:
-- possibly use several claims as source, all of those claims being a string array or a single string of comma separated values (Keycloak for instance can provide with roles in `realm_access.roles` and `resource_access.{client-id}.roles`)
-- configure case processing and prefix independently for each claim (for instance use `SCOPE_` prefix for scopes in `scp` claim and `ROLE_` prefix for roles in `realm_access.roles` one)
-- provide with a different configuration for each provider (Keycloak, Auth0 and Cognito all use different private claims for user roles)
+我们将按以下规范实现从 OpenID 私有 claim 映射 Spring Security authorities：
+- 可使用多个 claim 作为来源，所有 claim 均为字符串数组或逗号分隔的单个字符串（例如 Keycloak 可以在 `realm_access.roles` 和 `resource_access.{client-id}.roles` 中提供角色）
+- 对每个 claim 独立配置大小写处理和前缀（例如对 `scp` claim 中的 scope 使用 `SCOPE_` 前缀，对 `realm_access.roles` 中的角色使用 `ROLE_` 前缀）
+- 为每个 provider 提供独立的配置（Keycloak、Auth0 和 Cognito 各自使用不同的私有 claim 存储用户角色）
 
-#### 3.3.1. Dependencies
-To ease roles claims parsing, we'll use [json-path](https://central.sonatype.com/artifact/com.jayway.jsonpath/json-path/2.8.0). Let's add it to our dependencies:
+#### 3.3.1. 依赖配置
+为简化角色 claim 的解析，我们使用 [json-path](https://central.sonatype.com/artifact/com.jayway.jsonpath/json-path/2.8.0)，将其添加到依赖中：
 ```xml
 <dependency>
     <groupId>com.jayway.jsonpath</groupId>
@@ -193,8 +191,8 @@ To ease roles claims parsing, we'll use [json-path](https://central.sonatype.com
 </dependency>
 ```
 
-#### 3.3.2. Application Properties
-Then, we need some additional configuration properties to provide with the flexibility to change, for each issuer the claims containing the username and roles
+#### 3.3.2. 应用配置属性
+然后，我们需要一些额外的配置属性来灵活地为每个 issuer 配置包含用户名和角色的 claim：
 ```java
 @Data
 @Configuration
@@ -240,7 +238,7 @@ public class SpringAddonsProperties {
     }
 }
 ```
-We'll also need the yaml properties matching this configuration:
+还需要在 yaml 中添加与此配置对应的属性：
 ```yaml
 spring-addons:
   issuers:
@@ -259,8 +257,8 @@ spring-addons:
     - jsonPath: $.permissions
 ```
 
-#### 3.3.3. Authorities and Authentication Converters
-We can now write a converter bean building Spring authorities from JWT claims, as specified in the configuration above:
+#### 3.3.3. Authorities 和 Authentication Converter
+现在我们可以编写一个 converter bean，按照上述配置从 JWT claim 构建 Spring authorities：
 ```java
 @RequiredArgsConstructor
 static class JwtGrantedAuthoritiesConverter implements Converter<Jwt, Collection<? extends GrantedAuthority>> {
@@ -303,7 +301,7 @@ static class JwtGrantedAuthoritiesConverter implements Converter<Jwt, Collection
     }
 }
 ```
-This authorities converter will be instantiated and used by such an authentication converter:
+该 authorities converter 将由如下 authentication converter 实例化并使用：
 ```java
 @Component
 @RequiredArgsConstructor
@@ -320,8 +318,8 @@ static class SpringAddonsJwtAuthenticationConverter implements Converter<Jwt, Mo
 }
 ```
 
-#### 3.3.4. Security Configuration Update
-The last missing configuration piece is an update of the security filter-chain: inject our authentication converter in th resource server configuration:
+#### 3.3.4. Security 配置更新
+最后缺少的一块配置是更新 security filter chain：将我们的 authentication converter 注入 resource server 配置中：
 ```java
 @Bean
 SecurityWebFilterChain filterChain(
@@ -340,10 +338,10 @@ SecurityWebFilterChain filterChain(
 return http.build();
 }
 ```
-**Cool, we can now map authorities from any JWT access token, issued by any OIDC Provider, by just editing a configuration property!**
+**太棒了，现在只需编辑一个配置属性，就能从任意 OIDC Provider 签发的任意 JWT access token 中映射 authorities 了！**
 
-#### 3.3.5. Restricted End-Point
-To demo **R**ole **B**ased **A**ccess **C**ontrol, we'll edit our `@RestController` to add a new end-point only accessible to users granted with the `NICE` role:
+#### 3.3.5. 受限端点
+为演示 **R**ole **B**ased **A**ccess **C**ontrol（RBAC），我们在 `@RestController` 中添加一个只有拥有 `NICE` 角色的用户才能访问的新端点：
 ```java
 @GetMapping("/restricted")
 @PreAuthorize("hasAuthority('NICE')")
@@ -352,14 +350,14 @@ public Mono<MessageDto> getRestricted() {
 }
 ```
 
-### 4. Multi-Tenancy
-So far, our resource server is able to accept identities issued by any OIDC Provider, but only one per resource server instance. This is frequently enough, but not always.
+### 4. 多租户
+到目前为止，我们的 resource server 可以接受来自任意 OIDC Provider 签发的身份，但每个 resource server 实例每次只能支持一个 OP。这在大多数情况下已经足够，但并非总是如此。
 
-For instance, when working with Keycloak, we can consider all realms as distinct OPs. We'll have to provide some additional configuration for a single resource server instance to accept requests from users identified on different realms.
+例如，在使用 Keycloak 时，可以将所有 realm 视为不同的 OP。要让单个 resource server 实例同时接受来自不同 realm 的用户请求，需要提供一些额外配置。
 
-Let's first remove the `spring.security.oauth2.resourceserver.jwt.issuer-uri` which is not adapted to our use-case. We'll iterate over the `spring-addons.issuers` instead. We can remove the `auth0` and `cognito` profiles too.
+首先移除不适用于此场景的 `spring.security.oauth2.resourceserver.jwt.issuer-uri`，改为遍历 `spring-addons.issuers`。同时也可以移除 `auth0` 和 `cognito` profile。
 
-Next, we'll define a `ReactiveAuthenticationManagerResolver`:
+然后定义一个 `ReactiveAuthenticationManagerResolver`：
 ```java
 @Bean
 ReactiveAuthenticationManagerResolver<ServerWebExchange>
@@ -377,7 +375,7 @@ JwtReactiveAuthenticationManager authenticationManager(String issuer, SpringAddo
 }
 ```
 
-Last, when configuring the resource server within the security filter-chain, we'll replace the authentication converter configuration with our new authentication manager resolver:
+最后，在 security filter chain 中配置 resource server 时，将 authentication converter 配置替换为新的 authentication manager resolver：
 ```java
 @Bean
 SecurityWebFilterChain filterChain(
@@ -389,17 +387,17 @@ SecurityWebFilterChain filterChain(
         ReactiveAuthenticationManagerResolver<ServerWebExchange> authenticationManagerResolver)
         throws Exception {
 
-    // Configure the app as resource server with an authentication manager resolver capable of handling multi-tenancy
+    // 配置应用为 resource server，使用能够处理多租户的 authentication manager resolver
     http.oauth2ResourceServer(resourceServer -> resourceServer.authenticationManagerResolver(authenticationManagerResolver));
     ...
     return http.build();
 }
 ```
 
-## 5. Testing
-Explore the source code to have a look at how to mock identities in unit and integration tests and assert access-control is behaving as expected. All samples and tutorials include detailed access-control tests.
+## 5. 测试
+请查阅源码，了解如何在单元测试和集成测试中 mock 身份，以及如何断言访问控制行为符合预期。所有示例和教程都包含详细的访问控制测试。
 
-## 6. Conclusion
-In this tutorial, we configured a reactive (WebFlux) Spring Boot 3 application as an OAuth2 resource server with authorities mapping to enable RBAC using roles defined in as many OIDC Providers (or Keycloak realms) as we need, no matter if they send user roles in the same claim(s).
+## 6. 总结
+在本教程中，我们将一个响应式（WebFlux）Spring Boot 3 应用配置为 OAuth2 resource server，并映射 authorities 以使用任意数量的 OIDC Provider（或 Keycloak realm）上定义的角色实现 RBAC，无论这些 Provider 是否将用户角色存放在相同的 claim 中。
 
-But wait, what we did here is pretty verbose and we'll need it in almost any OAuth2 resource server we write. Do we really have to write all that again and again? Not really: this repo provides with a [`spring-addons-webflux-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server) Spring Boot starter just for that, with a [sample usage here](https://github.com/ch4mpy/spring-addons/tree/master/samples/webflux-jwt-default). And if for whatever reason you don't want to use that one, you can still write [your own starter](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration) to wrap the configuration we wrote here.
+但且慢，我们在这里所做的一切相当冗长，而几乎每个 OAuth2 resource server 都会用到这些配置。难道每次都要重复写这些吗？其实不必：本仓库提供了 [`spring-addons-webflux-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server) Spring Boot starter 正是为此而生，[这里有一个使用示例](https://github.com/ch4mpy/spring-addons/tree/master/samples/webflux-jwt-default)。如果出于某种原因不想使用它，也可以编写[自己的 starter](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration)，将我们在这里编写的配置封装起来。

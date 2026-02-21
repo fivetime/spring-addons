@@ -1,23 +1,22 @@
-# How to configure a Spring REST API with `OAuthentication<OpenidClaimSet>`
-The aim here is to set up security for a Spring Boot 3 resource server with JWT decoding and a custom `Authentication` implementation instead of the default `JwtAuthenticationToken`
+# 如何使用 `OAuthentication<OpenidClaimSet>` 配置 Spring REST API
+本教程的目标是为一个带有 JWT 解码功能的 Spring Boot 3 resource server 配置安全机制，并使用自定义 `Authentication` 实现替代默认的 `JwtAuthenticationToken`。
 
-## 0. Disclaimer
-There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+## 0. 免责声明
+本仓库示例数量较多，所有示例均纳入 CI 以确保代码可编译且测试全部通过。遗憾的是，此 README 不会随源码变更自动更新。请将其作为理解源码的参考指引。**如需复制代码，请务必从源码中复制，而非从此 README 中复制。**
 
-## 1. Prerequisites
-We assume that [tutorials main README prerequisites section](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#prerequisites) has been achieved and that you have a minimum of 1 OIDC Provider (2 would be better) with ID and secret for clients configured with authorization-code flow.
+## 1. 前置条件
+假设已完成[教程主 README 的前置条件章节](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#prerequisites)，并已准备好至少 1 个 OIDC Provider（2 个更好），且已配置带有 authorization-code 流程的 client ID 和 secret。
 
-Also, we will be using `spring-addons-starter-oidc`. If for whatever reason you don't want to do so, you'll have to follow the [`servlet-resource-server` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) to configure the REST API as an OAuth2 resource server with just `spring-boot-starter-oauth2-resource-server`
+另外，本教程将使用 `spring-addons-starter-oidc`。如果出于某种原因不想使用，可以参考 [`servlet-resource-server` 教程](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server)，仅使用 `spring-boot-starter-oauth2-resource-server` 将 REST API 配置为 OAuth2 resource server。
 
-## 2. Project Initialization
-We'll start a spring-boot 3 project with the help of https://start.spring.io/
-Following dependencies will be needed:
+## 2. 项目初始化
+借助 https://start.spring.io/ 创建一个 Spring Boot 3 项目，需要以下依赖：
 - Spring Web
 - Lombok
 
-Then add dependencies to spring-addons:
+然后添加 spring-addons 相关依赖：
 - [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc)
-- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test) with `test` scope
+- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test)（`test` scope）
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
@@ -32,10 +31,10 @@ Then add dependencies to spring-addons:
 </dependency>
 ```
 
-## 3. Web-Security Configuration
-`spring-oauth2-addons` comes with `@AutoConfiguration` for web-security config adapted to REST API projects. We'll just add:
-- `@EnableMethodSecurity` to activate `@PreAuthorize` on components methods.
-- provide a `JwtAbstractAuthenticationTokenConverter` bean to switch `Authentication` implementation from `JwtAuthenticationToken` to `OAuthentication<OpenidClaimSet>`
+## 3. Web Security 配置
+`spring-oauth2-addons` 提供了适用于 REST API 项目的 web security 配置 `@AutoConfiguration`。我们只需要：
+- 添加 `@EnableMethodSecurity` 以在组件方法上启用 `@PreAuthorize`
+- 提供一个 `JwtAbstractAuthenticationTokenConverter` bean，将 `Authentication` 实现从 `JwtAuthenticationToken` 切换为 `OAuthentication<OpenidClaimSet>`
 ```java
 @Bean
 JwtAbstractAuthenticationTokenConverter authenticationConverter(
@@ -52,10 +51,10 @@ JwtAbstractAuthenticationTokenConverter authenticationConverter(
   };
 }
 ```
-Here, we kept `spring-addons` default authorities converter in charge of extracting Spring authorities from token claims. This converter needs configuration properties resolved by an `OpenidProviderPropertiesResolver` (`spring-addons` default one resolves properties using by matching the token `iss` claim with the `iss` property in YAML.
+这里，我们保留了 `spring-addons` 默认的 authorities converter 来从 token claim 中提取 Spring authorities。该 converter 需要由 `OpenidProviderPropertiesResolver` 解析的配置属性（`spring-addons` 的默认实现通过将 token 的 `iss` claim 与 YAML 中的 `iss` 属性匹配来解析属性）。
 
-## 4. Application Properties
-Most security configuration is controlled from properties. Please refer to [spring-addons starter introduction tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) for the details about the properties we set here:
+## 4. 应用配置属性
+大部分安全配置由属性控制。关于此处设置的属性的详细说明，请参阅 [spring-addons starter 入门教程](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server)：
 ```yaml
 scheme: http
 origins: ${scheme}://localhost:4200
@@ -115,8 +114,8 @@ spring:
       on-profile: ssl
 ```
 
-## 5. Sample `@RestController`
-Please note that OpenID standard claims are typed and can be accessed with getters (instead of Map<String, Object> like with JwtAuthenticationToken for instance)
+## 5. 示例 `@RestController`
+请注意，OpenID 标准 claim 是有类型的，可以通过 getter 访问（而不像 `JwtAuthenticationToken` 那样使用 `Map<String, Object>`）：
 ``` java
 @RestController
 @PreAuthorize("isAuthenticated()")
@@ -140,8 +139,8 @@ public class GreetingController {
 }
 ```
 
-## 5. Unit-Tests
-Please refer to the source code and the dedicated [article on Baeldung](https://www.baeldung.com/spring-oauth-testing-access-control)
+## 5. 单元测试
+请参阅源码以及 [Baeldung 上的专题文章](https://www.baeldung.com/spring-oauth-testing-access-control)。
 
-## 6. Conclusion
-This sample was guiding you to build a servlet application (webmvc) with JWT decoder and `OAuthentication<OpenidClaimSet>`. If you need help to configure a resource server for webflux (reactive)  or access token introspection or another type of authentication, please refer to other tutorials and [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).
+## 6. 总结
+本示例引导你构建了一个带有 JWT decoder 和 `OAuthentication<OpenidClaimSet>` 的 servlet（webmvc）应用。如需配置 webflux（响应式）resource server、access token introspection 或其他类型认证的帮助，请参阅其他教程和 [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples)。

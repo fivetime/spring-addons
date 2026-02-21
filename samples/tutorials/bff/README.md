@@ -1,38 +1,38 @@
-# Implementing the OAuth2 **B**ackend **F**or **F**rontend pattern with Spring Cloud Gateway
-Introduction to the OAuth2 **B**ackend **F**or **F**rontend pattern with `spring-cloud-gateway` as middle-ware between a single-page or mobile application secured with sessions cookies and a Spring OAuth2 resource-server secured with JWTs.
+# 使用 Spring Cloud Gateway 实现 OAuth2 **B**ackend **F**or **F**rontend 模式
+介绍以 `spring-cloud-gateway` 作为中间件，在通过 session cookie 保护的单页应用或移动应用，与通过 JWT 保护的 Spring OAuth2 resource server 之间实现 OAuth2 **B**ackend **F**or **F**rontend 模式。
 
-Contains sample frontends written with **Angular, React (Next.js) and Vue (Vite)**.
+包含使用 **Angular、React（Next.js）和 Vue（Vite）** 编写的前端示例。
 
-The OAuth2 BFF tutorial is now [on Baeldung](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2).
+OAuth2 BFF 教程现已上线 [Baeldung](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)。
 
-### Definition
-A **B**ackend **F**or **F**rontend is a middleware between a frontend and REST APIs and can be used for very different reasons. Here, we are interested in **OAuth2 BFF** which is used to bridge between requests **authorization using session cookies** (as provided by the the frontend) and **authorization using Bearer token** (as expected by resource servers). Its responsibilities are:
-- driving the authorization-code flow using a "confidential" OAuth2 client
-- maintaining sessions and storing tokens in it
-- replacing the session cookie with the access token in session before forwarding a request from the frontend to a resource server
+### 定义
+**B**ackend **F**or **F**rontend 是前端与 REST API 之间的中间件，可用于多种不同目的。本教程关注的是 **OAuth2 BFF**，它用于在**基于 session cookie 的请求授权**（前端提供）和**基于 Bearer token 的请求授权**（resource server 期望）之间架起桥梁。其职责包括：
+- 使用"机密"OAuth2 client 驱动 authorization-code 流程
+- 维护 session 并将 token 存储其中
+- 在将前端请求转发给 resource server 时，将 session cookie 替换为 session 中的 access token
 
-###  Benefits over public OAuth2 clients
-The main value is safety:
-- the BFF running on a server we trust, **the authorization server token endpoint can be protected with a secret and firewall rules to allow only requests from our backend**. This greatly reduces the risk that tokens are issued to malicious clients.
-- **tokens are kept on the server (sessions), which prevents it from being stolen on end-user devices by malicious programs**. Usage of session cookies requires protection against CSRF, but cookies can be flagged with HttpOnly, Secure and SameSite, in which case the cookie protection on the device is enforced by the browser itself. As a comparison, a SPA configured as public client needs access to tokens and we have to be very careful with how this tokens are stored: if a malicious program manages to read an access or refresh token, the consequences can be disastrous for the user (identity usurpation).
+### 相较于公开 OAuth2 Client 的优势
+核心价值在于安全性：
+- BFF 运行在我们信任的服务器上，**授权服务器的 token endpoint 可以通过 secret 和防火墙规则加以保护，仅允许来自后端的请求**。这大幅降低了 token 被签发给恶意 client 的风险。
+- **token 保存在服务器端（session 中），防止其在终端用户设备上被恶意程序窃取**。使用 session cookie 需要防范 CSRF，但 cookie 可以设置 `HttpOnly`、`Secure` 和 `SameSite` 标志，此时 cookie 在设备上的保护由浏览器自身强制执行。相比之下，配置为公开 client 的 SPA 需要直接访问 token，我们必须非常谨慎地处理 token 的存储方式：一旦恶意程序成功读取 access token 或 refresh token，对用户造成的后果可能是灾难性的（身份冒用）。
 
-The other benefit is the complete control it gives on user session and the ability to instantly revoque an access.
+另一个优势是对用户 session 的完全掌控能力，以及即时撤销访问权限的能力。
 
-### Cost
-A BFF is an additional layer in the system and it is on the critical path. In production, this implies:
-- more resources (a little)
-- more latency (very little)
-- more monitoring & failure recovery
+### 代价
+BFF 是系统中额外增加的一层，且处于关键路径上。在生产环境中，这意味着：
+- 更多资源消耗（少量）
+- 更高延迟（极少）
+- 更多监控与故障恢复工作
 
-Also, the resource servers behind the BFF can (and should) be stateless, but the OAuth2 BFF itself need sessions and this requires specific actions to make it scalable and fault tolerant.
+此外，BFF 后面的 resource server 可以（也应该）是无状态的，但 OAuth2 BFF 本身需要 session，这要求采取专门措施来保证其可扩展性和容错性。
 
-We can easily package Spring Cloud Gateway into a native image using Spring Boot Maven and Gradle plugins. This makes it super lightweight and bootable in a fraction of a second, but there is always a limit to the traffic it can absorb. When needing more than a single instance, we'll have to either share the session between BFF instances, or use a smart proxy routing all requests from a given device to the same instance.
+我们可以使用 Spring Boot 的 Maven 和 Gradle 插件轻松将 Spring Cloud Gateway 打包为原生镜像，使其极为轻量并能在极短时间内启动。但任何单实例都有其流量上限。当需要超过一个实例时，必须在 BFF 实例之间共享 session，或使用智能代理将来自同一设备的所有请求路由到同一个实例。
 
-### Choice of an implementation
-Some frameworks implement the OAuth2 BFF pattern without communicating explicitly about it or calling it that way. This is the case for instance of the NextAuth library which uses server components to implement OAuth2 (uses a confidential client in a Node instance on the server). This is enough to benefit from the safety of the OAuth2 BFF pattern.
+### 实现方案的选择
+部分框架在没有明确提及或专门命名的情况下，实际上已经实现了 OAuth2 BFF 模式。例如 NextAuth 库，它使用服务器组件在 Node 服务端实例中实现 OAuth2（使用机密 client），足以获得 OAuth2 BFF 模式带来的安全性。
 
-But because of the very rich Spring ecosystem, there are very few existing solutions as handy as Spring Cloud Gateway when monitoring, scalability and fault tolerance matters:
-- spring-boot-starter-actuator dependency provides with powerful auditing features
-- Spring Session is a rather simple solution for distributed sessions
-- spring-boot-starter-oauth2-client and oauth2Login() handle the authorization-code flow and store tokens in the session
-- the TokenRelay= filter replaces the session cookie with the access token in the session when forwarding requests from the frontend to a resource server
+但得益于极为丰富的 Spring 生态，在监控、可扩展性和容错性方面，几乎没有比 Spring Cloud Gateway 更趁手的解决方案：
+- `spring-boot-starter-actuator` 依赖提供了强大的审计功能
+- Spring Session 是相对简单的分布式 session 解决方案
+- `spring-boot-starter-oauth2-client` 和 `oauth2Login()` 处理 authorization-code 流程并将 token 存储在 session 中
+- `TokenRelay=` 过滤器在将前端请求转发给 resource server 时，将 session cookie 替换为 session 中的 access token

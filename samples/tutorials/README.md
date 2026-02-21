@@ -1,192 +1,191 @@
-# Securing Spring Applications With OAuth2
-These tutorials are focused on configuring OAuth2 security in Spring Boot 3 applications with OpenID Provider(s).
+# 使用 OAuth2 保护 Spring 应用
+本系列教程专注于在带有 OpenID Provider 的 Spring Boot 3 应用中配置 OAuth2 安全机制。
 
-**You should carefully read the [OAuth2 essentials](#oauth_essentials) section before rushing to a specific tutorial**. This might save you a lot of time and inform you with some of the latest recommendations (using only confidential clients, hiding tokens from users devices, ...) which have a strong impact on single-page applications and deprecate most of the tutorials available on the web.
+**在直奔具体教程之前，请务必仔细阅读 [OAuth2 基础知识](#oauth_essentials) 章节。** 这将为你节省大量时间，并让你了解一些最新建议（如仅使用保密客户端、对用户设备隐藏 token 等），这些建议对单页应用有重大影响，也使得网络上大多数现有教程已经过时。
 
-Once you have determined if the application to configure is an OAuth2 client or an OAuth2 resource server, and [setup at least one OIDC Provider](#prerequisites), then refer the [Tutorials scenarios](#scenarios) and pick one matching your needs.
+确定要配置的应用是 OAuth2 client 还是 OAuth2 resource server，并[设置至少一个 OIDC Provider](#prerequisites) 之后，参阅[教程场景](#scenarios)，选择符合你需求的那一个。
 
-Jump to:
-- [1. OAuth2 essentials](#oauth_essentials)
-- [2. Prerequisites](#prerequisites)
-- [3. Tutorials scenarios](#scenarios)
+跳转至：
+- [1. OAuth2 基础知识](#oauth_essentials)
+- [2. 前置条件](#prerequisites)
+- [3. 教程场景](#scenarios)
 
 
-## 1. <a name="oauth_essentials"/>OAuth2 essentials
-OAuth2 client and resource-server configuration are very different. **Spring provides with different starters for a reason**. If you're not sure about the definitions, needs and responsibilities of those two, please take 5 minutes to read this section before you start. You may **test your OAuth2 / OpenID knowledge with the dedicated quiz** available at [https://quiz.c4-soft.com/ui/quizzes](https://quiz.c4-soft.com/ui/quizzes)
+## 1. <a name="oauth_essentials"/>OAuth2 基础知识
+OAuth2 client 和 resource server 的配置差异显著。**Spring 提供不同 starter 是有原因的。** 如果你对这两者的定义、用途和职责还不太确定，请花 5 分钟阅读本节再开始。你也可以在 [https://quiz.c4-soft.com/ui/quizzes](https://quiz.c4-soft.com/ui/quizzes) 上**通过专项问答测试你的 OAuth2 / OpenID 知识。**
 
-### 1.1 Actors
-- **resource-owner**: think of it as end-user. Most frequently a physical person, but can be a batch or whatever trusted program authenticated with client-credential (or even a device authenticated with a flow we'll skip) 
-- **authorization-server**: the server issuing and certifying resource-owners and clients identities. It is sometimes referred to as *issuer* or *OIDC Provider* (*OP*).
-- **client**: a piece of software which needs to access resources on one or more resource-servers. **It is responsible for acquiring tokens from the authorization server and authorizing its requests to resource-servers**, and as so to handle OAuth2 flows. It is sometimes referred to as *Relying Party* (*RP*).
-- **resource-server**: an API (most frequently REST). **It should not care about login, logout or any OAuth2 flow.** From its point of view, all that matters is if a request is authorized with a valid access token and taking access decisions based on it.
+### 1.1 参与方
+- **resource-owner（资源所有者）**：可以理解为终端用户。通常是真实的人，但也可以是通过 client-credential 认证的批处理程序或其他受信任程序（甚至是通过某种流程认证的设备，此处略过不表）
+- **authorization-server（授权服务器）**：负责签发和认证 resource-owner 及 client 身份的服务器，有时也被称为 *issuer* 或 *OIDC Provider*（*OP*）
+- **client（客户端）**：需要访问一个或多个 resource server 上资源的软件。**它负责从授权服务器获取 token 并为其对 resource server 的请求授权**，因此需要处理 OAuth2 流程。有时也被称为 *Relying Party*（*RP*）
+- **resource-server（资源服务器）**：通常是一个 API（最常见的是 REST API）。**它不应该关心登录、登出或任何 OAuth2 流程。** 从其视角来看，唯一重要的是请求是否携带有效的 access token，以及基于该 token 做出访问控制决策
 
-It is important to note that **a front-end is not necessarily an OAuth2 client**: in the **B**ackend **F**or **F**rontend pattern, the OAuth2 client is on the server, between resource server(s) (secured with access tokens) and web (Angular, React, Vue, ...) or mobile applications which are secured with sessions and never see OAuth2 tokens.
+值得注意的是，**前端不一定是 OAuth2 client**：在 **B**ackend **F**or **F**rontend（BFF）模式中，OAuth2 client 位于服务端，处于 resource server（通过 access token 保护）与 Web（Angular、React、Vue 等）或移动应用之间——后者通过 session 保护，从不接触 OAuth2 token。
 
-### 1.2. Client VS Resource Server Configuration
-As already wrote, the responsibilities and security requirements are quite different. Let's explore that in more details.
+### 1.2. Client 与 Resource Server 配置的区别
+如前所述，两者的职责和安全要求差异显著，下面进一步展开。
 
-#### 1.2.1. Need for Sessions
-**Resource servers can usually be configured as stateless (without session)**. The "state" is associated with the access token which is enough to restore the security context of a request. This has valuable benefits for scalability and fault tolerance: any resource server instance can process any request without the need of sharing a session. Also, the access token protects against CSRF attacks and, if it is rotated frequently enough (every minute or so), against BREACH attacks too!
+#### 1.2.1. 对 Session 的需求
+**Resource server 通常可以配置为无状态（不使用 session）。** "状态"与 access token 关联，足以恢复请求的 security context。这对可扩展性和容错性有重要价值：任何 resource server 实例都可以处理任何请求，无需共享 session。此外，access token 还能防范 CSRF 攻击，如果轮换频率足够高（约每分钟一次），也能防范 BREACH 攻击！
 
-**Clients consumed by browsers are secured with session cookies, not access tokens**. This exposes it to CSRF and BREACH attacks, and we'll have to configure specific mitigations for that. Also, as soon as scalability and fault tolerance are a concern, we'll have to pull the session out of the client instances.
+**浏览器访问的 client 通过 session cookie 而非 access token 来保护。** 这使其暴露于 CSRF 和 BREACH 攻击，我们需要针对性地配置缓解措施。另外，一旦需要考虑可扩展性和容错性，就必须将 session 从 client 实例中剥离出去。
 
-#### 1.2.2. Requests Authorization
-Resource servers expect requests to be authorized with an `Authorization` header containing a `Bearer` access token. 
+#### 1.2.2. 请求授权
+Resource server 期望请求通过包含 `Bearer` access token 的 `Authorization` 请求头来授权。
 
-Clients are responsible for authorizing their requests to resource servers: setting this `Authorization` header. Clients have the choice of different OAuth2 flows to get tokens from the authorization server (see next section for details). To avoid fetching new tokens for each request, it also has to save tokens and should be very careful to use a secured enough place so that tokens can't leak to malicious code (the persistent storage of a remote device is a pretty bad place to that regard).
+Client 负责为其对 resource server 的请求授权：设置这个 `Authorization` 请求头。Client 可以通过不同的 OAuth2 流程从授权服务器获取 token（详见下一节）。为避免每次请求都获取新 token，client 还需要保存 token，并且必须非常谨慎地选择足够安全的存储位置，以防 token 泄露给恶意代码（远程设备的持久化存储在这方面是个相当糟糕的选择）。
 
-Resource servers don't care how access tokens were obtained. Its responsibilities are limited to check the validity of this token (issuer, audience, expiration time, etc.) and then decide if it should grant the requested resource based on the token claims (inside the token or introspected from it).
+Resource server 不关心 access token 是如何获取的。它的职责仅限于验证 token 的有效性（issuer、audience、过期时间等），然后根据 token 中的 claim（token 内部或通过 introspection 获取）决定是否授予所请求的资源。
 
-User login is part of OAuth2 `authorization-code` flow. As a consequence, **OAuth2 login (and logout) only make sense on OAuth2 clients configured with `authorization-code` flow**.
+用户登录是 OAuth2 `authorization-code` 流程的一部分。因此，**OAuth2 登录（和登出）只在配置了 `authorization-code` 流程的 OAuth2 client 上才有意义**。
 
-To send requests to a secured resource server, you'll have to use a client capable of sending authorized requests. A few samples:
-- REST clients with UI like Postman.
-- A "rich" browser application (Angular, React, Vue, etc.) configured as public client with an OAuth2 client library to handle flows, tokens storage and requests authorization. But be aware that [this is now discouraged](https://github.com/spring-projects/spring-authorization-server/issues/297#issue-896744390).
-- Programmatic REST client (`RestClient`, `WebClient`, `@FeignClient`, `RestTemplate`, ...) used to call an OAuth2 secured API from another micro-service.
-- A BFF. **B**ackend **F**or **F**rontend is a pattern in which a middleware (the BFF) on the server is used to hide OAuth2 tokens from the browser. The requests between the browser and the BFF are secured with sessions. The BFF is responsible for login, logout, storing tokens in session and replacing session cookie with OAuth2 access token before forwarding a request from the browser to resource server(s). [`spring-cloud-gateway` can be used as BFF with `spring-boot-starter-oauth2-client` and the `TokenRelay` filter](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2).
+要向受保护的 resource server 发送请求，需要使用能够发送授权请求的 client，例如：
+- 带 UI 的 REST 客户端，如 Postman
+- 配置了 OAuth2 client 库来处理流程、token 存储和请求授权的"富"浏览器应用（Angular、React、Vue 等），作为公开客户端使用。但请注意[现在已不推荐这种方式](https://github.com/spring-projects/spring-authorization-server/issues/297#issue-896744390)
+- 程序化 REST 客户端（`RestClient`、`WebClient`、`@FeignClient`、`RestTemplate` 等），用于在微服务之间调用受 OAuth2 保护的 API
+- BFF。**B**ackend **F**or **F**rontend 是一种在服务端使用中间件（BFF）将 OAuth2 token 对浏览器隐藏的模式。浏览器与 BFF 之间的请求通过 session 保护，BFF 负责登录、登出、在 session 中存储 token，并在将浏览器请求转发给 resource server 之前将 session cookie 替换为 OAuth2 access token。[`spring-cloud-gateway` 可配合 `spring-boot-starter-oauth2-client` 和 `TokenRelay` 过滤器用作 BFF](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
 
-#### 1.2.3. `spring-boot-starter-oauth2-client` or `spring-boot-starter-oauth2-resource-server`?
-If the application is a REST API it should be configured as a resource server because of its "stateless" nature. Use `spring-boot-starter-oauth2-resource-server`, do not configure OAuth2 login and require clients to authorize their requests (use Postman or alike for your tests).
+#### 1.2.3. 选择 `spring-boot-starter-oauth2-client` 还是 `spring-boot-starter-oauth2-resource-server`？
+如果应用是 REST API，由于其"无状态"特性，应将其配置为 resource server，使用 `spring-boot-starter-oauth2-resource-server`，不配置 OAuth2 登录，要求 client 对请求授权（测试时使用 Postman 或类似工具）。
 
-Use `spring-boot-starter-oauth2-client` if the application serves UI templates or is used as BFF. In that case only, will login & logout be configured in Spring application (otherwise, it's managed by Postman or whatever is the OAuth2 client). 
+如果应用提供 UI 模板或用作 BFF，则使用 `spring-boot-starter-oauth2-client`。只有在这种情况下，登录和登出才会在 Spring 应用中配置（否则由 Postman 或其他 OAuth2 client 来管理）。
 
-What if the application matches both cases above (for instance exposes publicly both a REST API and a Thymeleaf UI to manipulate it)? As seen earlier, the configuration requirements are too different to stand in the same security filter-chain, but **it is possible to define more than one filter-chain if the first(s) in `@Order` are defined with `securityMatcher` to define to which requests it apply**: the path (or any other request attribute like headers) is checked against each security filter-chain "matchers" in order and the first match defines which `SecurityFilterChain` bean will be applied to the request.
+如果应用同时满足以上两种情况（例如同时公开暴露 REST API 和操作该 API 的 Thymeleaf UI）怎么办？如前所述，两者的配置要求差异太大，无法在同一个 security filter chain 中配置，但**可以定义多个 filter chain，前面的（按 `@Order`）带有 `securityMatcher` 来定义其适用的请求范围**：请求的路径（或其他任意请求属性如请求头）会依次与每个 security filter chain 的"matcher"进行匹配，第一个匹配的 `SecurityFilterChain` bean 将被应用于该请求。
 
-### 1.3. Flows
-There are quite a few but 3 are of interest for us: authorization-code, client-credentials and refresh-token.
+### 1.3. 流程
+OAuth2 流程有不少，其中 3 种与我们关系最大：authorization-code、client-credentials 和 refresh-token。
 
-Whatever the flow used, once the client has tokens, it can authorize its requests to resource-servers: set an `authorization` header with a `Bearer` access token.
+无论使用哪种流程，一旦 client 拥有了 token，就可以为其对 resource server 的请求授权：在请求头中设置带有 `Bearer` access token 的 `authorization` 字段。
 
-Resource-server validates the token and retrieves user details either by:
-- using a local JWT decoder which only requires authorization-server public key (retrieved once for all requests)
-- submitting token to authorization-server introspection end-point (one call for each and every authorized request it processes, which will cause latency and significant load on the authorization server)
+Resource server 验证 token 并获取用户信息的方式有两种：
+- 使用本地 JWT decoder，只需授权服务器的公钥（一次性获取，用于所有请求）
+- 向授权服务器的 introspection 端点提交 token（对其处理的每个授权请求各调用一次，会引入延迟并对授权服务器造成较大压力）
 
 #### 1.3.1. Authorization-Code
-**Used to authenticate a client on behalf of an end-user (physical persons).**
+**用于代表终端用户（真实的人）对 client 进行认证。**
 
-0. Client and resource server fetch OpenID configuration from the OIDC Provider.
-1. The frontend "exits" to redirect the unauthorized user to the authorization server using system browser. If the user already has an opened session on the authorization server, the login succeeds silently. Otherwise, the user is prompted for credentials, biometry MFA tokens or whatever has been configured on the OP.
-2. Once user authenticated, the authorization-server redirects the user back to the client with a `code` to be used once. This redirection happens in the system browser used to initiate the `authorization_code` flow.
-3. Client contacts authorization-server to exchange the `code` for an access token (and optionally ID & refresh tokens).
-4. The frontend sends REST requests to the resource server by the intermediate of the OAuth2 client (which replaces the session cookie with an `Authorization` header containing a `Bearer` access token).
-5. Resource server validates access token (using JWT public key fetched once or introspecting each token on the OP) and takes access-control decision.
+0. Client 和 resource server 从 OIDC Provider 获取 OpenID 配置
+1. 前端"跳出"，通过系统浏览器将未授权用户重定向到授权服务器。若用户在授权服务器上已有打开的 session，则登录静默成功；否则，提示用户输入凭据、生物识别、MFA token 或 OP 上配置的其他方式
+2. 用户认证成功后，授权服务器通过系统浏览器将用户重定向回 client，并附带一个一次性使用的 `code`
+3. Client 联系授权服务器，用 `code` 换取 access token（以及可选的 ID token 和 refresh token）
+4. 前端通过 OAuth2 client 中转向 resource server 发送 REST 请求（OAuth2 client 将 session cookie 替换为包含 `Bearer` access token 的 `Authorization` 请求头）
+5. Resource server 验证 access token（使用一次性获取的 JWT 公钥，或在 OP 上 introspect 每个 token），并做出访问控制决策
 
 ![authorization-code flow](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/authorization-code_flow.png)
 
-In the schematic above, the authorization-code flow starts at step 1 and ends with step 3.
+在上图中，authorization-code 流程从第 1 步开始，到第 3 步结束。
 
-In the case of a native application a mechanism like Android app links or iOS universal links can be used at step 2 to provide the frontend with the authorization-code. The frontend then uses its own user agent to forward the code to the OAuth2 client. As the tokens fetched at step 3 are stored by the client in the session associated with the user agent which provided the authorization-code, **it is important that the frontend uses the same user agent to send the authorization-code as the one it's going to use for the REST requests needing to be authorized**.
+对于原生应用，可以在第 2 步使用 Android App Links 或 iOS Universal Links 等机制将 authorization-code 传递给前端，前端再使用自己的 user agent 将 code 转发给 OAuth2 client。由于第 3 步获取的 token 存储在与提供 authorization-code 的 user agent 关联的 session 中，**前端发送 authorization-code 时使用的 user agent 必须与后续发送需授权 REST 请求时使用的 user agent 一致，这一点非常重要。**
 
-In the case of an SPA the user agent is the system browser, so no special care is needed at step 2 to send the authorization-code to the OAuth2 client. At the end of step 3, the OAuth2 client responds with a redirection to the frontend (the browser re-enters the SPA).
+对于 SPA，user agent 是系统浏览器，因此第 2 步将 authorization-code 发送给 OAuth2 client 无需特别处理。第 3 步结束时，OAuth2 client 以重定向响应前端（浏览器重新进入 SPA）。
 
-In the case of a server-side rendered UI (Thymeleaf, JSF, etc.), the OAuth2 client is the frontend, so everything happens internally without you notice much.
+对于服务端渲染 UI（Thymeleaf、JSF 等），OAuth2 client 即是前端，一切都在内部发生，用户几乎无感知。
 
 #### 1.3.2. Client-Credential
-**Used to authenticate a client as itself** (without the context of a user). It usually provides the authorization-server with a client-id and client-secret. **This flow can only be used with clients running on a server you trust** (capable of keeping a secret actually "secret") and excludes all services running in a browser or a mobile app (code can be reverse engineered to read secrets). This flow is frequently used for inter-service communication (to fetch configuration, post logs or tracing events, message publication / subscription, ...)
+**用于以 client 自身身份进行认证**（不依赖用户上下文）。通常向授权服务器提供 client-id 和 client-secret。**此流程只能用于运行在你信任的服务器上的 client**（能够真正保密地保存 secret），不适用于在浏览器或移动应用中运行的服务（代码可被逆向工程读取 secret）。此流程常用于服务间通信（获取配置、发送日志或追踪事件、消息发布/订阅等）。
 
 #### 1.3.3. Refresh-Token
-The client sends the refresh-token to the authorization-server which responds with new tokens to replace those about to expire. The refresh-token should not be sent to any other server than the authorization-server.
+Client 将 refresh-token 发送给授权服务器，授权服务器返回新 token 以替换即将过期的旧 token。refresh-token 不应发送给授权服务器之外的任何服务器。
 
-### 1.4. Tokens
-#### 1.4.1. Token Format
-A **JWT** is a JSON Web Token. It is used primarily as access or ID token with OAuth2. JWTs can be validated on their own: just authorization-server public signing key is required for that.
+### 1.4. Token
+#### 1.4.1. Token 格式
+**JWT** 是 JSON Web Token，主要用作 OAuth2 的 access token 或 ID token。JWT 可以自行验证：只需授权服务器的公钥签名即可。
 
-Instead of using a JWT decoder, access tokens can be introspected. This can be done whatever the token format (not necessarily JWT, tokens are considered _opaque_), but requires the resource-servers to send a request to authorization-server to ensure the token is valid and get token "attributes" (equivalent to JWT "claims"). This process introduces latency in the overal request processing and puts extra pressure on the authorization server.
+除了使用 JWT decoder，access token 也可以通过 introspection 验证。这种方式适用于任何 token 格式（不一定是 JWT，token 被视为*不透明的*），但需要 resource server 向授权服务器发送请求来确认 token 有效并获取 token "属性"（相当于 JWT 的 "claim"）。这一过程会在整体请求处理中引入延迟，并给授权服务器带来额外压力。
 
-#### 1.4.2. access token
-Pretty much like a paper proxy you could give to someone else to vote for you. Here are a few claims it should contain:
-- `iss` (issuer): the authorization-server which emitted the token (police officer or alike who certified identities of people who gave and received proxy)
-- `sub` (subject): resource-owner unique identifier (person who grants the proxy)
-- `azp` (authorized parties): client unique identifier (who the proxy is granted to)
-- `aud` (audience): resource server(s) which should accept the token (where to use the proxy)
-- `scp` (scope): what the resource owner allowed the client to do on his behalf (proxy for voting, managing a bank account, get a parcel at post-office, etc.)
-- `exp` (expiration): until when can this token be used
+#### 1.4.2. Access Token
+类似于你授权他人代表你投票的纸质委托书。以下是它通常包含的几个 claim：
+- `iss`（issuer）：签发该 token 的授权服务器（负责认证委托双方身份的公证人等）
+- `sub`（subject）：resource-owner 的唯一标识符（授予委托书的人）
+- `azp`（authorized parties）：client 的唯一标识符（委托书授予的对象）
+- `aud`（audience）：应接受该 token 的 resource server（委托书的使用场所）
+- `scp`（scope）：resource-owner 允许 client 代表其执行的操作（投票、管理银行账户、在邮局取包裹等）
+- `exp`（expiration）：该 token 的有效期至
 
-A token to be sent by client as Bearer `Authorization` header in its requests to resource-server. access tokens content should remain a concern of authorization and resource servers only (client should not try to read access tokens)
+Client 在向 resource server 发送请求时，将 token 作为 `Bearer` `Authorization` 请求头发送。access token 的内容应仅由授权服务器和 resource server 关注（client 不应尝试读取 access token）。
 
 #### 1.4.3. Refresh-Token
-A token to be sent by client to authorization-server to get new access token when it expires (or preferably just before). Refresh-token lifespan is usually quite long and can be used to get many access tokens. If leaked, user is exposed to an import identity usurpation risk. As a consequence, clients should be very careful about the way it stores tokens and it should make sure it communicates refresh-tokens only to the authorization-server which issued it.
+Client 在 access token 过期时（或最好在过期前）发送给授权服务器以获取新 access token 的 token。refresh-token 的有效期通常很长，可用于获取多个 access token。一旦泄露，用户将面临严重的身份盗用风险。因此，client 必须非常谨慎地保存 token，并确保 refresh-token 只发送给签发它的授权服务器。
 
 #### 1.4.4. ID-Token
-Part of OpenID extension to OAuth2. A token to be used by client to get user info.
+OAuth2 的 OpenID 扩展的一部分，client 用于获取用户信息的 token。
 
-### 1.5. Scope, Roles, Permissions, Groups, etc.
-It is important to note that `scope` is not what the user is allowed to do in the system (like roles, permissions, etc.), but what **he allowed a client to do on his behalf**. You might think of it as a mask applied on resource-owner resources before a client accesses it.
+### 1.5. Scope、角色、权限、分组等
+需要特别注意的是，`scope` 并不代表用户在系统中被允许执行的操作（如角色、权限等），而是**他授权某个 client 代表其执行的操作**。可以将其理解为 client 访问 resource-owner 资源前覆盖的一层掩码。
 
-As so, in most cases, it won't be a good source (or not the only source) for authorities spring-security and we'll have to provide our own authorities converter to make role based security decisions with authorities mapped from the private claims our authorization server uses for roles, permissions, groups, etc..
+因此，在大多数情况下，scope 并不适合（或不能单独）作为 Spring Security authorities 的来源，我们需要自定义 authorities converter，将授权服务器用于角色、权限、分组等的私有 claim 映射为 authority，从而做出基于角色的安全决策。
 
-## 2. <a name="prerequisites"/>Prerequisites
-To run these tutorials you will need a minimum of one OIDC Provider (authorization server), but to appreciate its full potential, having the 3 referenced in the next sub-section would be nice.
+## 2. <a name="prerequisites"/>前置条件
+运行这些教程至少需要一个 OIDC Provider（授权服务器），但为了充分体验，最好同时拥有下一小节中提到的 3 个。
 
-You'll also find a REST client with a UI pretty handy to fetch tokens from the authorization server and send authorized tests requests to your resource server instances. [Postman](https://www.postman.com/) is a famous sample.
+此外，一个带 UI 的 REST 客户端非常实用，可以从授权服务器获取 token 并向 resource server 实例发送授权测试请求。[Postman](https://www.postman.com/) 是一个广为人知的选择。
 
-Last, you'll have to know the private-claim your authorization-servers put username and roles into. There is no standard. Keycloak uses `realm_access.roles` (and `resource_access.{clientId}.roles` if client roles mapper is activated), but other authorization-servers will use something else. You can use tools like https://jwt.io to inspect access tokens and figure out which claim is used by an issuer for roles.
+最后，你需要了解各授权服务器在哪个私有 claim 中存放用户名和角色，这没有统一标准。Keycloak 使用 `realm_access.roles`（如果启用了 client roles mapper，还有 `resource_access.{clientId}.roles`），其他授权服务器则各有不同。可以使用 https://jwt.io 等工具检查 access token，找出某个 issuer 用于存放角色的 claim。
 
-### 2.1. Authorization-Servers
-The samples are all configured to accept identities from 3 sources:
-  * a [local Keycloak realm](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/keycloak.md) Keycloak is open-source and free
-  * [Auth0](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/auth0.md)
-  * [Cognito](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/cognito.md)
+### 2.1. 授权服务器
+所有示例均配置为接受来自以下 3 个来源的身份：
+* [本地 Keycloak realm](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/keycloak.md)（Keycloak 是开源免费的）
+* [Auth0](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/auth0.md)
+* [Cognito](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/cognito.md)
 
-Both Auth0 and Cognito propose free plans which are enough to run the tutorials and samples. You'll have to register your own instances and clients to get your own client-id and client-secrets and update configuration files.
+Auth0 和 Cognito 均提供免费套餐，足以运行教程和示例。你需要注册自己的实例和 client，获取 client-id 和 client-secret，并更新配置文件。
 
-Remember to update the tutorials configuration with the OIDC Providers you set up.
+配置完 OIDC Provider 后，记得更新教程中的相关配置。
 
 ### 2.2. SSL
-It is important to work with https when exchanging access tokens, otherwise tokens can be leaked and user identity stolen. For this reason, many tools and libs will complain if you use http. If you don't have one already, [generate a self-signed certificate](https://github.com/ch4mpy/self-signed-certificate-generation) for your dev machine.
+在交换 access token 时务必使用 https，否则 token 可能泄露，用户身份可能被盗用。因此，许多工具和库在使用 http 时会发出警告。如果还没有证书，请为开发机[生成一个自签名证书](https://github.com/ch4mpy/self-signed-certificate-generation)。
 
-## 3. <a name="scenarios"/>Tutorials Scenarios
-In the following, you'll first find tutorials with just the "official" Spring Boot starters and then some using the alternate starters proposed by this repository.
+## 3. <a name="scenarios"/>教程场景
+以下内容首先介绍仅使用"官方" Spring Boot starter 的教程，然后是使用本仓库提供的替代 starter 的教程。
 
-There is a triple motivation behind this:
-- demo how much simpler OAuth2 configuration is with `spring-addons-starter-oidc`
-- explain what is auto-configured (in addition to what already is by the official starters)
-- demo test annotations usage with just `spring-addons-oauth2-test`. Tests in projects at `3.1.` and `3.2.` are declined in three versions:
-  * MockMvc request post-processor or WebTestClient mutator
-  * `@WithMockAuthentication`, defining authorities and name inline
-  * `@WithMockJwt`, loading claim-set from a classpath resource and using the `Converter<Jwt, ? extends AbstractAuthenticationToken>` in the security configuration to turn it into an Authentication instance
+这样安排有三重目的：
+- 演示使用 `spring-addons-starter-oidc` 后 OAuth2 配置有多简单
+- 说明在"官方" starter 已有的自动配置基础上，额外自动配置了哪些内容
+- 演示仅使用 `spring-addons-oauth2-test` 时测试注解的用法。`3.1.` 和 `3.2.` 项目中的测试有三种版本：
+  * MockMvc 请求后处理器或 WebTestClient mutator
+  * `@WithMockAuthentication`，以内联方式定义 authorities 和 name
+  * `@WithMockJwt`，从 classpath 资源中加载 claim-set，并使用 security 配置中的 `Converter<Jwt, ? extends AbstractAuthenticationToken>` 将其转换为 Authentication 实例
 
-### 3.1. OAuth2 Resource Server With Just `spring-boot-starter-oauth2-resource-server`
-Configure Spring Boot 3 applications as OAuth2 resource server (REST API) with authorities mapping to enable RBAC using roles defined on OIDC Providers.
+### 3.1. 仅使用 `spring-boot-starter-oauth2-resource-server` 的 OAuth2 Resource Server
+将 Spring Boot 3 应用配置为 OAuth2 resource server（REST API），并映射 authorities 以使用 OIDC Provider 上定义的角色实现 RBAC。
 
-These tutorials are using only the "official" `spring-boot-starter-oauth2-resource-server` and are available for both
-[servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server).
+这些教程仅使用"官方" `spring-boot-starter-oauth2-resource-server`，提供 [servlet](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) 和[响应式](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server)两个版本。
 
-### 3.2. OAuth2 Client With Just `spring-boot-starter-oauth2-client`
-Configure Spring Boot 3 applications as OAuth2 clients (Thymeleaf UI) with login, logout and authorities mapping to enable RBAC using roles defined on OIDC Providers.
+### 3.2. 仅使用 `spring-boot-starter-oauth2-client` 的 OAuth2 Client
+将 Spring Boot 3 应用配置为 OAuth2 client（Thymeleaf UI），支持登录、登出，并映射 authorities 以使用 OIDC Provider 上定义的角色实现 RBAC。
 
-These tutorials are using only the "official" `spring-boot-starter-oauth2-client` and are available for both [servlets](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client) and [reactive applications](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)
+这些教程仅使用"官方" `spring-boot-starter-oauth2-client`，提供 [servlet](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client) 和[响应式](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)两个版本。
 
 ### 3.3. [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)
-Demos how to use a custom OAuth2 `Authentication` implementation: `OAuthentication<OpenidClaimSet>` with typed accessors to OpenID claims.
+演示如何使用自定义 OAuth2 `Authentication` 实现：带有 OpenID claim 类型化访问器的 `OAuthentication<OpenidClaimSet>`。
 
-This tutorial introduces `spring-addons-starter-oidc`, which greatly simplifies Java configuration compared to section `3.1.`: all the Java configuration is replaced with application properties.
+本教程引入 `spring-addons-starter-oidc`，与 `3.1.` 章节相比大幅简化了 Java 配置：所有 Java 配置均由应用配置属性替代。
 
 ### 3.4. [`resource-server_with_specialized_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_specialized_oauthentication)
-Builds on top of preceding, showing how to 
-- extend `OAuthentication<OpenidClaimSet>` implementation to add private claims of your own
-- tweek `spring-addons-webmvc-jwt-resource-server` auto-configuration
-- enrich security SpEL
+在上一节基础上进一步展示如何：
+- 扩展 `OAuthentication<OpenidClaimSet>` 实现以添加自定义私有 claim
+- 调整 `spring-addons-webmvc-jwt-resource-server` 的自动配置
+- 丰富 security SpEL 表达式
 
 ### 3.5. [`resource-server_with_additional-header`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_additional-header)
-Use a custom header, in addition to the access token, to build a custom authentication.
+在 access token 之外使用自定义请求头来构建自定义 authentication。
 
 ### 3.6. [`resource-server_with_introspection`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_introspection)
-Quite like `resource-server_with_oauthentication`, using token introspection instead of JWT decoder. Please note this is likely to have performance impact.
+与 `resource-server_with_oauthentication` 类似，但使用 token introspection 而非 JWT decoder。请注意这可能对性能产生影响。
 
 ### 3.7. [`resource-server_with_ui`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui)
-Configure a Spring Boot 3 application as both OAuth2 client (Thymeleaf UI) and OAuth2 resource server (REST API).
+将 Spring Boot 3 应用同时配置为 OAuth2 client（Thymeleaf UI）和 OAuth2 resource server（REST API）。
 
-This is done by defining two distinct and ordered security filter-chains: 
-- the 1st with client configuration, with login, logout, and a security matcher limiting it to UI resources
-- the 2nd with resource server configuration. As it has no security matcher and a higher order, it intercepts all requests that were not matched by the 1st filter chain and acts as default for all the remaining resources (REST API).
+实现方式是定义两个有序的独立 security filter chain：
+- 第一个采用 client 配置，包含登录、登出，并通过 security matcher 将其限制在 UI 资源范围内
+- 第二个采用 resource server 配置。由于没有 security matcher 且优先级更低，它拦截所有未被第一个 filter chain 匹配的请求，作为所有其余资源（REST API）的默认处理器
 
-The Thymeleaf pages being secured with session cookies and the REST end-points with JWTs, the Thymeleaf `@Controller` internally uses `WebClient` to fetch data from the API and build the model for the template, authorizing its requests with tokens stored in session.
+Thymeleaf 页面通过 session cookie 保护，REST 端点通过 JWT 保护，因此 Thymeleaf `@Controller` 内部使用 `WebClient` 从 API 获取数据并构建模板的 model，使用存储在 session 中的 token 对请求授权。
 
-### 3.8. [OAuth2 BFF with Spring Cloud Gateway](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
-Introduction to the OAuth2 **B**ackend **F**or **F**rontend pattern with `spring-cloud-gateway` as middle-ware between a single-page or mobile application secured with sessions cookies and a Spring OAuth2 resource-server secured with JWTs.
+### 3.8. [使用 Spring Cloud Gateway 的 OAuth2 BFF](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
+介绍 OAuth2 **B**ackend **F**or **F**rontend 模式，使用 `spring-cloud-gateway` 作为中间件，连接通过 session cookie 保护的单页或移动应用与通过 JWT 保护的 Spring OAuth2 resource server。
 
-Contains sample frontends written with Angular, React (Next.js) and Vue (Vite).
+包含使用 Angular、React（Next.js）和 Vue（Vite）编写的示例前端。
 
-### 3.9. [Resource Server with dynamic tenants](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_multitenant_dynamic)
-In this tutorial, the resource server should accept access tokens issued by any realm of a Keycloak server (even if created after a the resource server started).
+### 3.9. [具有动态租户的 Resource Server](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_multitenant_dynamic)
+在本教程中，resource server 应接受 Keycloak 服务器上任意 realm 签发的 access token（即使该 realm 是在 resource server 启动后才创建的）。

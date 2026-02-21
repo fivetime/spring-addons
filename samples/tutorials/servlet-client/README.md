@@ -1,20 +1,20 @@
-# Servlet OAuth2 Client with Login, Logout and Authorities Mapping
-In this tutorial, we'll configure a servlet (WebMVC) Spring Boot 3 application as an OAuth2 client with login, logout and authorities mapping to enable RBAC using roles defined on OIDC Providers.
+# 带登录、登出和 Authorities 映射的 Servlet OAuth2 Client
+在本教程中，我们将一个 servlet（WebMVC）Spring Boot 3 应用配置为带有登录、登出和 authorities 映射的 OAuth2 client，并使用 OIDC Provider 上定义的角色实现 RBAC。
 
-## 0. Disclaimer
-There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+## 0. 免责声明
+本仓库示例数量较多，所有示例均纳入 CI 以确保代码可编译且测试全部通过。遗憾的是，此 README 不会随源码变更自动更新。请将其作为理解源码的参考指引。**如需复制代码，请务必从源码中复制，而非从此 README 中复制。**
 
-## 1. Project Initialization
-We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites), and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on each OP.
+## 1. 项目初始化
+本教程在完成[前置条件](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites)之后开始，假设至少已配置 1 个 OIDC Provider（2 个更好），并且每个 OP 上都有拥有和没有 `NICE` 角色的用户。
 
 ### 1.1. Spring Boot Starter
-As usual, we'll start with http://start.spring.io/ adding the following dependencies:
+与往常一样，从 http://start.spring.io/ 开始，添加以下依赖：
 - Spring Web
 - OAuth2 Client
-- lombok
+- Lombok
 
-### 1.2. Application Properties
-Once the project unpacked, replace the `src/main/resources/application.properties` with the following `src/main/resources/application.yaml`:
+### 1.2. 应用配置属性
+解压项目后，将 `src/main/resources/application.properties` 替换为以下 `src/main/resources/application.yaml`：
 ```yaml
 scheme: http
 keycloak-port: 8442
@@ -79,13 +79,13 @@ spring:
     activate:
       on-profile: ssl
 ```
-There are few things worth noting here:
-- we defined 3 different providers with a `authorization_code` client registration for each. This means that user should be prompted to pick one for authenticating (prompt is skipped if only one `authorization_code` client registration is configured).
-- there is a `ssl` profile to serve this app over SSL in which the port the application binds to is something else than `80` or `8080` ([because of `PortMapperImpl` usage in servlet applications](https://github.com/spring-projects/spring-security/issues/12307))
-- you must replace issuer URIs, as well as client IDs and secrets you got when following [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites) (remove providers and registrations you did not configure)
+以下几点值得注意：
+- 我们为 3 个不同的 provider 各定义了一个 `authorization_code` client registration，这意味着用户需要选择一个进行认证（如果只配置了一个 `authorization_code` client registration，则跳过选择提示）
+- 有一个 `ssl` profile，用于通过 SSL 运行应用，此时应用绑定的端口不是 `80` 或 `8080`（[原因是 servlet 应用中使用了 `PortMapperImpl`](https://github.com/spring-projects/spring-security/issues/12307)）
+- 你必须替换 issuer URI，以及按照[前置条件](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites)操作后获得的 client ID 和 secret（删除未配置的 provider 和 registration）
 
-### 1.3. Static Index Page
-To have something to see once we're authenticated, let's define this `src/main/resources/static/index.html` page :
+### 1.3. 静态首页
+为了在认证后有内容可看，我们定义如下 `src/main/resources/static/index.html` 页面：
 ```html
 <!DOCTYPE HTML>
 <html>
@@ -108,27 +108,27 @@ To have something to see once we're authenticated, let's define this `src/main/r
 </div>
 </body>
 ```
-We can now run the app and browse to [http://localhost:8080](http://localhost:8080).
+现在可以运行应用并访问 [http://localhost:8080](http://localhost:8080)。
 
-At first glance, things seem to be working: we can login on any of the configured OIDC Providers:
-- before login, we can't access index and are redirected to login instead
-- after login on any of the configured, we can access the index
-- after logout, we can't access the index anymore
+初步来看，一切似乎正常：我们可以在任意已配置的 OIDC Provider 上登录：
+- 登录前无法访问首页，会被重定向到登录页
+- 在任意已配置的 Provider 上登录后，可以访问首页
+- 登出后，无法再访问首页
 
-But with a little more testing, we face a first issue: if we login again on an OIDC Providers we were already identified on, then we are not prompted for our credentials (login happens silently). To solve that, we'll have to configure [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) so that a session invalidation on our client is propagated to the OP.
+但稍加测试就会遇到第一个问题：如果再次登录到已认证过的 OIDC Provider，系统不会提示输入凭据（登录静默完成）。要解决这个问题，需要配置 [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html)，使 client 上的 session 失效能传播到 OP。
 
 ## 2. RP-Initiated Logout
-Spring provides with a `LogoutSuccessHandler` for OIDC Providers implementing the [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html): `OidcClientInitiatedLogoutSuccessHandler`. But to override some of the security filter-chain configuration, we have to provide a full `SecurityFilterChain` bean.
+Spring 为实现了 [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html) 的 OIDC Provider 提供了 `LogoutSuccessHandler`：`OidcClientInitiatedLogoutSuccessHandler`。但要覆盖 security filter chain 的部分配置，我们必须提供一个完整的 `SecurityFilterChain` bean。
 
-### 2.1. Standard RP-Initiated Logout
-An OAuth2 client security filter-chain for an application needing to authenticate users will contain:
-- login
-- logout
-- sessions (enabled by default)
-- CSRF protection (required because of sessions and enabled by default with session repository)
-- some access control allowing unauthorized users to access at minimum the resources for login and authorization-code flow
+### 2.1. 标准 RP-Initiated Logout
+需要对用户进行认证的应用，其 OAuth2 client security filter chain 应包含：
+- 登录
+- 登出
+- session（默认启用）
+- CSRF 保护（因为有 session，且使用 session repository 时默认启用）
+- 允许未授权用户至少访问登录和 authorization-code 流程所需资源的访问控制
 
-Let's implement that:
+实现如下：
 ```java
 @Configuration
 @EnableWebSecurity
@@ -147,12 +147,12 @@ public class WebSecurityConfig {
     }
 }
 ```
-Great! Logout now works as expected with Keycloak, but it's another story with Auth0 and Cognito which diverge from the standard: the `end_session_endpoint` is not listed in `.well-known/openid-configuration` and the parameter name for `post_logout_redirect_uri` is not standard.
+很好！登出在 Keycloak 上如预期工作，但对于偏离标准的 Auth0 和 Cognito 则是另一回事：`end_session_endpoint` 未在 `.well-known/openid-configuration` 中列出，且 `post_logout_redirect_uri` 的参数名也不标准。
 
-### 2.2. Non-Standard RP-Initiated Logout
-Let's write our own `LogoutSuccessHandler` to specify the logout URI as well as parameter name for post-logout URI.
+### 2.2. 非标准 RP-Initiated Logout
+我们来自己编写一个 `LogoutSuccessHandler`，用于指定登出 URI 以及登出后跳转 URI 的参数名。
 
-For that, let's first decorate our Boot application with `@ConfigurationPropertiesScan` and then declare configuration properties:
+首先，在 Boot 主类上添加 `@ConfigurationPropertiesScan`，然后声明配置属性：
 ```java
 @Data
 @Configuration
@@ -167,7 +167,7 @@ public class LogoutProperties {
     }
 }
 ```
-Adding those properties to the yaml (mind the provider IDs which must be the same as those under `spring.security.oauth2.client.registration`):
+将对应属性添加到 yaml 中（注意 provider ID 必须与 `spring.security.oauth2.client.registration` 下的 ID 一致）：
 ```yaml
 logout:
   registration:
@@ -178,7 +178,7 @@ logout:
       logout-uri: ${auth0-issuer}v2/logout
       post-logout-uri-parameter-name: returnTo
 ```
-Now, we can define a logout success handler parsing this configuration for non-standard RP-Initiated Logout (taking "inspiration" from Spring's `OidcClientInitiatedLogoutSuccessHandler`):
+现在，我们可以定义一个 logout success handler，解析此配置用于非标准 RP-Initiated Logout（参考 Spring 的 `OidcClientInitiatedLogoutSuccessHandler` 实现）：
 ```java
 @RequiredArgsConstructor
 static class AlmostOidcClientInitiatedLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
@@ -231,7 +231,7 @@ static class AlmostOidcClientInitiatedLogoutSuccessHandler extends SimpleUrlLogo
     }
 }
 ```
-This handler is fine for non-standard OPs, but if we want to keep Spring's logout success handler for Keycloak (and avoid defining logout properties for it), we need a facade for the two implementations we now have:
+此 handler 适用于非标准 OP，但如果我们希望对 Keycloak 继续使用 Spring 的 logout success handler（同时避免为其定义 logout 属性），则需要一个门面来整合这两种实现：
 ```java
 static class DelegatingOidcClientInitiatedLogoutSuccessHandler implements LogoutSuccessHandler {
     private final Map<String, LogoutSuccessHandler> delegates;
@@ -263,9 +263,9 @@ static class DelegatingOidcClientInitiatedLogoutSuccessHandler implements Logout
 
 }
 ```
-This handler switches between Spring's `OidcClientInitiatedLogoutSuccessHandler` and our `AlmostOidcClientInitiatedLogoutSuccessHandler` depending on the configuration properties.
+此 handler 根据配置属性在 Spring 的 `OidcClientInitiatedLogoutSuccessHandler` 和我们的 `AlmostOidcClientInitiatedLogoutSuccessHandler` 之间切换。
 
-Last we need to update the security filter-chain to use the new `DelegatingOidcClientInitiatedServerLogoutSuccessHandler`:
+最后，需要更新 security filter chain 以使用新的 `DelegatingOidcClientInitiatedServerLogoutSuccessHandler`：
 ```java
 @Bean
 SecurityFilterChain
@@ -280,14 +280,14 @@ SecurityFilterChain
 }
 ```
 
-## 3. Roles Mapping
-We'll implement a mapping of Spring Security authorities from OpenID private claims with the following specifications:
-- possibly use several claims as source, all of those claims being a string array or a single string of comma separated values (Keycloak for instance can provide with roles in `realm_access.roles` and `resource_access.{client-id}.roles`)
-- configure case processing and prefix independently for each claim (for instance use `SCOPE_` prefix for scopes in `scp` claim and `ROLE_` prefix for roles in `realm_access.roles` one)
-- provide with a different configuration for each provider (Keycloak, Auth0 and Cognito all use different private claims for user roles)
+## 3. 角色映射
+我们将按以下规范实现从 OpenID 私有 claim 映射 Spring Security authorities：
+- 可使用多个 claim 作为来源，所有 claim 均为字符串数组或逗号分隔的单个字符串（例如 Keycloak 可以在 `realm_access.roles` 和 `resource_access.{client-id}.roles` 中提供角色）
+- 对每个 claim 独立配置大小写处理和前缀（例如对 `scp` claim 中的 scope 使用 `SCOPE_` 前缀，对 `realm_access.roles` 中的角色使用 `ROLE_` 前缀）
+- 为每个 provider 提供独立的配置（Keycloak、Auth0 和 Cognito 各自使用不同的私有 claim 存储用户角色）
 
-### 3.1. Dependencies
-To ease roles claims parsing, we'll use [json-path](https://central.sonatype.com/artifact/com.jayway.jsonpath/json-path/2.8.0). Let's add it to our dependencies:
+### 3.1. 依赖配置
+为简化角色 claim 的解析，我们使用 [json-path](https://central.sonatype.com/artifact/com.jayway.jsonpath/json-path/2.8.0)，将其添加到依赖中：
 ```xml
 <dependency>
     <groupId>com.jayway.jsonpath</groupId>
@@ -295,8 +295,8 @@ To ease roles claims parsing, we'll use [json-path](https://central.sonatype.com
 </dependency>
 ```
 
-### 3.2. Application Properties
-Then, we need some additional configuration properties to provide with the flexibility we specified above:
+### 3.2. 应用配置属性
+然后，我们需要一些额外的配置属性来满足上述灵活性需求：
 ```java
 @Data
 @Configuration
@@ -341,7 +341,7 @@ public class AuthoritiesMappingProperties {
     }
 }
 ```
-We'll also need the yaml properties matching this configuration:
+还需要在 yaml 中添加与此配置对应的属性：
 ```yaml
 authorities-mapping:
   issuers:
@@ -360,11 +360,11 @@ authorities-mapping:
 ```
 
 ### 3.3. `GrantedAuthoritiesMapper`
-According to [the doc](https://docs.spring.io/spring-security/reference/servlet/oauth2/login/advanced.html#oauth2login-advanced-map-authorities), we have two options:
-- providing a `GrantedAuthoritiesMapper` bean
-- providing and configuring an `OAuth2UserService<OidcUserRequest, OidcUser>`
+根据[官方文档](https://docs.spring.io/spring-security/reference/servlet/oauth2/login/advanced.html#oauth2login-advanced-map-authorities)，有两种选择：
+- 提供一个 `GrantedAuthoritiesMapper` bean
+- 提供并配置一个 `OAuth2UserService<OidcUserRequest, OidcUser>`
 
-We'll opt for the first solution: it's lighter, simpler and is enough for what we need, using the template from the doc as starting point:
+我们选择第一种方案：更轻量、更简单，足以满足需求。以文档中的模板为起点：
 ```java
 @Component
 @RequiredArgsConstructor
@@ -434,10 +434,10 @@ static class GrantedAuthoritiesMapperImpl implements GrantedAuthoritiesMapper {
     }
 }
 ```
-We can now use, in our Spring application, the roles defined on any of the OIDC Providers our user is identified against.
+现在，我们可以在 Spring 应用中使用用户在任意 OIDC Provider 上定义的角色了。
 
-### 3.4. Role Based Access Control
-To demo RBAC, let's define a new `src/main/resources/static/nice.html` page which should be accessible to `NICE` users only:
+### 3.4. 基于角色的访问控制
+为演示 RBAC，我们定义一个新的 `src/main/resources/static/nice.html` 页面，该页面只有拥有 `NICE` 角色的用户才能访问：
 ```html
 <!DOCTYPE HTML>
 <html>
@@ -458,28 +458,28 @@ To demo RBAC, let's define a new `src/main/resources/static/nice.html` page whic
 </div>
 </body>
 ```
-This off course requires to update the security configuration as follows:
+这当然需要相应地更新 security 配置：
 ```java
 http.authorizeHttpRequests(ex -> ex
         .requestMatchers("/login/**", "/oauth2/**").permitAll()
         .requestMatchers("/nice.html").hasAuthority("NICE")
         .anyRequest().authenticated());
 ```
-Now, only the users we granted with `NICE` role when configuring the OIDC Providers during [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites) should be able to see the [http://localhost:8080/nice.html](http://localhost:8080/nice.html) page ([https://localhost:7443/nice.html](https://localhost:7443/nice.html) if `ssl` profile is active).
+现在，只有在[前置条件](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites)配置 OIDC Provider 时授予了 `NICE` 角色的用户，才能访问 [http://localhost:8080/nice.html](http://localhost:8080/nice.html) 页面（启用 `ssl` profile 时为 [https://localhost:7443/nice.html](https://localhost:7443/nice.html)）。
 
-## 4. Preventing Simultaneous Identities
-Our index page being static (as well as the generated login one), it has no notion of the user being authenticated. As a consequence, an already identified user can login with a second OIDC Provider.
+## 4. 防止同时登录多个身份
+由于首页是静态页面（生成的登录页也是），它无法感知用户的认证状态。因此，已认证的用户可以继续用第二个 OIDC Provider 登录。
 
-If there is no fundamental problem with that (a user may actually have a variety of numeric identities across as many OPs as he likes), Spring does not support that out of the box: `OAuth2AuthenticationToken` is bound to a single `OAuth2User` which supports only one `subject` (the one from the last authentication), and the authorized client repository requires that `subject` to retrieve an authorized client.
+这在本质上没有根本性问题（用户确实可以在多个 OP 上拥有不同的数字身份），但 Spring 对此没有开箱即用的支持：`OAuth2AuthenticationToken` 绑定到单个 `OAuth2User`，而后者只支持一个 `subject`（最后一次认证的那个），且 authorized client repository 需要这个 `subject` 来检索 authorized client。
 
-As a result, if we login sequentially with several OP in our app, only the last identity is available and logout will terminate the session on the last OP only.
+因此，如果用户在应用中依次使用多个 OP 登录，只有最后一个身份可用，且登出只会终止最后一个 OP 上的 session。
 
-As working around `InMemoryAuthorizedClientRepository` is a rather complicated task, what we'll implement next is a guard to prevent authenticated users from logging in: they'll have to logout before they can login again.
+由于绕过 `InMemoryAuthorizedClientRepository` 相当复杂，我们接下来要实现一个防护机制，阻止已认证的用户再次登录：用户必须先登出才能重新登录。
 
-### 4.1. Thymeleaf Index
-Our first step will be replacing the static index with a template adapting to the user authentication status: display a `login` button to unauthorized users and a `logout` button to those already authenticated.
+### 4.1. Thymeleaf 首页
+第一步是将静态首页替换为能根据用户认证状态动态调整的模板：向未认证用户显示 `login` 按钮，向已认证用户显示 `logout` 按钮。
 
-For that, let's add [Thymeleaf starter](https://central.sonatype.com/artifact/org.springframework.boot/spring-boot-starter-thymeleaf/3.0.5) to our dependencies:
+为此，先将 [Thymeleaf starter](https://central.sonatype.com/artifact/org.springframework.boot/spring-boot-starter-thymeleaf/3.0.5) 添加到依赖中：
 ```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
@@ -487,7 +487,7 @@ For that, let's add [Thymeleaf starter](https://central.sonatype.com/artifact/or
 </dependency>
 ```
 
-Then we need a `@Controller` to check the user authentication status and set a `Model` accordingly:
+然后需要一个 `@Controller` 来检查用户认证状态，并据此设置 `Model`：
 ```java
 @Controller
 public class IndexController {
@@ -500,7 +500,7 @@ public class IndexController {
 }
 ```
 
-Last we can copy `src/main/resources/static/index.html` to `src/main/resources/templates/` and edit it to use the model we just set in the controller:
+最后，将 `src/main/resources/static/index.html` 复制到 `src/main/resources/templates/`，并编辑以使用 controller 中设置的 model：
 ```java
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
@@ -524,12 +524,12 @@ Last we can copy `src/main/resources/static/index.html` to `src/main/resources/t
 </body>
 ```
 
-### 4.2. Security Configuration Update
-The security rules need an update. We now want to:
-- allow access to index to all users (authenticated or not)
-- allow access to login page only to non-authenticated users
+### 4.2. Security 配置更新
+访问规则需要更新。现在我们希望：
+- 允许所有用户（无论是否认证）访问首页
+- 只允许未认证用户访问登录页
 
-The first rule is easy to implement: add `/` to the list of `permitAll()`, but the second requires to insert a filter before the login page one (there is a special "login page" filter which bypasses requests authorization):
+第一条规则很容易实现：将 `/` 添加到 `permitAll()` 列表中。但第二条规则需要在登录页过滤器之前插入一个过滤器（有一个特殊的"登录页"过滤器会绕过请求授权）：
 ```java
 static class LoginPageFilter extends GenericFilterBean {
     @Override
@@ -545,7 +545,7 @@ static class LoginPageFilter extends GenericFilterBean {
     }
 }
 ```
-We can then update the security filter-chain configuration as follows:
+然后可以按如下方式更新 security filter chain 配置：
 ```java
 @Bean
 SecurityFilterChain
@@ -564,11 +564,11 @@ SecurityFilterChain
 }
 ```
 
-## 5. Conclusion
-In this tutorial we configured a servlet OAuth2 client with login, logout and roles mapping.
+## 5. 总结
+在本教程中，我们配置了一个带有登录、登出和角色映射的 servlet OAuth2 client。
 
-But wait, what we did here is pretty verbose and we'll need it in almost any OAuth2 client we write. Do we really have to write all that again and again? Not really: this repo provides with a [`spring-addons-webmvc-client`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-client) Spring Boot starter just for that, and if for whatever reason you don't want to use that one, you can still write [your own starter](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration) to wrap the configuration we wrote here.
+但且慢，我们在这里所做的一切相当冗长，而几乎每个 OAuth2 client 都会用到这些配置。难道每次都要重复写这些吗？其实不必：本仓库提供了 [`spring-addons-webmvc-client`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-client) Spring Boot starter 正是为此而生。如果出于某种原因不想使用它，也可以编写[自己的 starter](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration)，将我们在这里编写的配置封装起来。
 
-Also, what if we actually need to users to have several authorized clients at the same time (for instance be authenticated on Google and Facebook at the same time to query Google API and Facebook graph from the same client)? Well, as suggested in previous section, you can provide with an alternate `OAuth2AuthorizedClientRepository`. This repo client starters propose such an implementation storing an authentication per issuer in the user session and then resolving the right one (with its subject) before trying to retrieve an authorized client. Again, if you don't want to use those starters, you can still write [your own](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration).
+另外，如果我们确实需要用户同时持有多个 authorized client（例如同时在 Google 和 Facebook 上认证，以从同一个 client 查询 Google API 和 Facebook Graph），可以像上一节建议的那样提供一个自定义的 `OAuth2AuthorizedClientRepository`。本仓库的 client starter 提供了这样的实现，它在用户 session 中按 issuer 存储认证信息，并在尝试检索 authorized client 前解析正确的认证（及其 subject）。同样，如果不想使用这些 starter，也可以[自己实现](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration)。
 
-Last, you might have a look into integration tests in source code to see how access control rules to `/`, `/login` and `nice.html` are verified with mocked security contexts.
+最后，可以查看源码中的集成测试，了解如何通过 mock security context 验证 `/`、`/login` 和 `nice.html` 的访问控制规则。

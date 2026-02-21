@@ -1,14 +1,14 @@
-# Maven-Central Reminders
+# Maven Central 备忘录
 
-Cheat-sheets for me when setting up a new development environment
+搭建新开发环境时的个人速查表
 
-## GPG Sign Key
+## GPG 签名密钥
 ``` bash
 gpg --list-keys
-# if key absent, then generate one with
+# 如果密钥不存在，使用以下命令生成
 gpg --gen-key
-# publish public key to one of supported servers 
-export GPG_PUB_KEY=(replace with "pub" key)
+# 将公钥发布到受支持的服务器之一
+export GPG_PUB_KEY=（替换为 "pub" 密钥）
 gpg --keyserver keyserver.ubuntu.com --send-keys $GPG_PUB_KEY
 gpg --keyserver keys.openpgp.org --send-keys $GPG_PUB_KEY
 gpg --keyserver pgp.mit.edu --send-keys $GPG_PUB_KEY
@@ -23,10 +23,10 @@ gpg --keyserver pgp.mit.edu --send-keys $GPG_PUB_KEY
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
   <servers>
     <server>
-      <!-- OSSRH Jira account -->
+      <!-- OSSRH Jira 账号 -->
       <id>ossrh</id>
-      <username>change-me with a value from https://oss.sonatype.org/#profile;User%20Token</username>
-      <password>change-me with a value from https://oss.sonatype.org/#profile;User%20Token</password>
+      <username>替换为 https://oss.sonatype.org/#profile;User%20Token 中的值</username>
+      <password>替换为 https://oss.sonatype.org/#profile;User%20Token 中的值</password>
     </server>
   </servers>
 
@@ -38,12 +38,12 @@ gpg --keyserver pgp.mit.edu --send-keys $GPG_PUB_KEY
       </activation>
       <properties>
         <gpg.executable>gpg</gpg.executable>
-        <gpg.passphrase>${env.GPG_PWD}</gpg.passphrase><!-- password retrieved from environment variable -->
+        <gpg.passphrase>${env.GPG_PWD}</gpg.passphrase><!-- 密码从环境变量中读取 -->
       </properties>
     </profile>
   </profiles>
 </settings>
 ```
 
-Add-opens for releasing with JDK 17:
+使用 JDK 17 发布时需要添加的 add-opens 参数：
 `export JDK_JAVA_OPTIONS='--add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.text=ALL-UNNAMED --add-opens java.desktop/java.awt.font=ALL-UNNAMED'`

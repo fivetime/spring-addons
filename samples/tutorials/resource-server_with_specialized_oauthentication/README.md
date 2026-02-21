@@ -1,25 +1,24 @@
-# How to extend `OAuthentication<OpenidClaimSet>`
+# 如何扩展 `OAuthentication<OpenidClaimSet>`
 
-## 0. Disclaimer
-There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
+## 0. 免责声明
+本仓库示例数量较多，所有示例均纳入 CI 以确保代码可编译且测试全部通过。遗憾的是，此 README 不会随源码变更自动更新。请将其作为理解源码的参考指引。**如需复制代码，请务必从源码中复制，而非从此 README 中复制。**
 
-## 1. Overview
-Let's say that we have business requirements where security is not role based only.
+## 1. 概述
+假设我们有一个业务需求，其安全控制不仅限于基于角色的方式。
 
-Let's assume that the authorization server also provides us with a `proxies` claim that contains a map of permissions per user "preferredUsername" (what current user was granted to do on behalf of some other users).
+假设授权服务器还提供了一个 `proxies` claim，其中包含一个以用户 `preferredUsername` 为键、权限集合为值的映射（即当前用户被授权代表其他用户执行的操作）。
 
-This tutorial will demo
-- how to extend `OAuthentication<OpenidClaimSet>` to hold those proxies in addition to authorities
-- how to extend security SpEL to easily evaluate proxies granted to authenticated users, OpenID claims or whatever related to security-context
+本教程将演示：
+- 如何扩展 `OAuthentication<OpenidClaimSet>`，在 authorities 之外额外持有这些代理权限（proxies）
+- 如何扩展 security SpEL，以便轻松判断已认证用户被授予的代理权限、OpenID claim 或其他与 security context 相关的信息
 
-## 2. Project Initialisation
-We'll start a spring-boot 3 project with the help of https://start.spring.io/
-Following dependencies will be needed:
+## 2. 项目初始化
+借助 https://start.spring.io/ 创建一个 Spring Boot 3 项目，需要以下依赖：
 - lombok
 
-Then add dependencies to spring-addons:
+然后添加 spring-addons 相关依赖：
 - [`spring-addons-starter-oidc`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc)
-- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test) with `test` scope
+- [`spring-addons-starter-oidc-test`](https://central.sonatype.com/artifact/com.c4-soft.springaddons/spring-addons-starter-oidc-test)（`test` scope）
 ```xml
 <dependency>
     <groupId>com.c4-soft.springaddons</groupId>
@@ -34,10 +33,10 @@ Then add dependencies to spring-addons:
 </dependency>
 ```
 
-## 3. Web-Security Configuration
+## 3. Web Security 配置
 
-### 3.1. `ProxiesClaimSet` and `ProxiesAuthentication`
-Let's first define what a `Proxy` is:
+### 3.1. `ProxiesClaimSet` 和 `ProxiesAuthentication`
+首先定义 `Proxy` 是什么：
 ```java
 @Data
 public class Proxy implements Serializable {
@@ -59,7 +58,7 @@ public class Proxy implements Serializable {
 }
 ```
 
-Now, we'll extend `OpenidToken` to add `proxies` private-claim parsing
+然后，扩展 `OpenidToken` 以添加 `proxies` 私有 claim 的解析：
 ```java
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -90,9 +89,9 @@ public class ProxiesToken extends OpenidToken {
   };
 }
 ```
-And finally extend `OAuthentication` to 
-- override `getName()` (users are identified by preferred_username in this tutorial)
-- provide direct accessor to a proxy for given user (from ProxiesClaimSet above)
+最后，扩展 `OAuthentication` 以：
+- 覆盖 `getName()`（本教程中用户以 preferred_username 作为唯一标识）
+- 提供对指定用户代理权限的直接访问器（来自上面的 `ProxiesClaimSet`）
 ```java
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -114,13 +113,13 @@ public class ProxiesAuthentication extends OAuthentication<ProxiesToken> {
 }
 ```
 
-### 3.2. Security @Beans
-We'll rely on `spring-addons-starter-oidc` `@AutoConfiguration` and just force authentication converter.
+### 3.2. Security `@Bean` 配置
+我们依赖 `spring-addons-starter-oidc` 的 `@AutoConfiguration`，只需强制指定 authentication converter。
 
-We'll also extend security SpEL with a few methods to:
-- compare current user's username to provided one
-- access current user proxy to act on behalf of someone else (specified by username)
-- evaluate if current user is granted with one of "nice" authorities
+同时，我们还扩展了 security SpEL，添加以下几个方法：
+- 将当前用户的用户名与给定值进行比较
+- 访问当前用户代表他人（按用户名指定）的代理权限
+- 判断当前用户是否拥有某个"nice" authority
 
 ```java
 @Configuration
@@ -160,8 +159,9 @@ public class SecurityConfig {
   }
 }
 ```
-### 3.3. Configuration Properties
-`application.yml`:
+
+### 3.3. 配置属性
+`application.yml`：
 ```yaml
 com:
   c4-soft:
@@ -190,11 +190,11 @@ com:
           - "/greet/public"
 ```
 
-## 4. Sample `@RestController`
-Note the `@PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can('greet')")` on the second method, which asserts that the user either:
-- is greeting himself
-- has one of "nice" authorities
-- has permission to `greet` on behalf of user with preferred_username equal to `username` `@PathVariable` (the route is `/greet/{username}`)
+## 4. 示例 `@RestController`
+注意第二个方法上的 `@PreAuthorize("is(#username) or isNice() or onBehalfOf(#username).can('greet')")`，它断言用户满足以下条件之一：
+- 正在向自己打招呼
+- 拥有某个"nice" authority
+- 拥有代表 `preferred_username` 等于路径变量 `username` 的用户执行 `greet` 操作的权限（路由为 `/greet/{username}`）
 
 ``` java
 @RestController
@@ -223,11 +223,11 @@ public class GreetingController {
 }
 ```
 
-## 5. Unit-Tests
+## 5. 单元测试
 
-The authentication factory behind `@WithJwt` uses the authentication converter in the security context if it finds any.
+`@WithJwt` 背后的 authentication factory 如果在 security context 中找到了 authentication converter bean，就会使用它。
 
-As we exposed ours as a bean, `@WithJwt` will populate the test security context with `ProxiesAuthentication` instances. But be careful that mutators from `spring-security-tests` (like `.jwt()`) wouldn't do so.
+由于我们将自己的 converter 暴露为 bean，`@WithJwt` 将用 `ProxiesAuthentication` 实例填充测试 security context。但请注意，`spring-security-tests` 中的 mutator（如 `.jwt()`）不会这样做。
 ```java
 @WebMvcTest(controllers = GreetingController.class)
 @AutoConfigureAddonsWebmvcResourceServerSecurity
@@ -300,8 +300,7 @@ class GreetingControllerTest {
     }
     // @formatter:on
 }
-
 ```
 
-# 6. Conclusion
-This sample was guiding you to build a servlet application (webmvc) with JWT decoder and an `Authentication` of your own. If you need help to configure a resource server for webflux (reactive)  or access token introspection, please refer to [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples).
+## 6. 总结
+本示例引导你构建了一个带有 JWT decoder 和自定义 `Authentication` 的 servlet（webmvc）应用。如需配置 webflux（响应式）resource server 或 access token introspection 的帮助，请参阅 [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples)。

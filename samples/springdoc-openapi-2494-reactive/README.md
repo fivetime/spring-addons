@@ -1,6 +1,6 @@
-# Reproducer for [https://github.com/springdoc/springdoc-openapi/issues/2494](https://github.com/springdoc/springdoc-openapi/issues/2494)
+# [https://github.com/springdoc/springdoc-openapi/issues/2494](https://github.com/springdoc/springdoc-openapi/issues/2494) 的复现案例
 
-considering the following enums:
+考虑以下枚举定义：
 ```java
 public static enum EnumSerializedByName {
     A("name a"),
@@ -30,7 +30,7 @@ public static enum EnumSerializedByToString {
     }
 
     @Override
-    @JsonValue // Forces serialization using toString()
+    @JsonValue // 强制使用 toString() 进行序列化
     public String toString() {
         return label;
     }
@@ -48,7 +48,7 @@ public static enum BijectiveEnumSerializedByToString {
     }
 
     @Override
-    @JsonValue // Forces serialization using toString()
+    @JsonValue // 强制使用 toString() 进行序列化
     public String toString() {
         return label;
     }
@@ -72,12 +72,12 @@ public static enum BijectiveEnumSerializedByToString {
 }
 ```
 
-with Spring default:
+在 Spring 默认配置下，包含以下 bean：
 - `HttpMessageConverter` beans
 - `Converter<String, EnumSerializedByName>`
 - `Converter<String, EnumSerializedByToString>`
 
-the generated spec is:
+生成的规范如下：
 ```json
   "components": {
     "schemas": {
@@ -94,7 +94,7 @@ the generated spec is:
   }
 ```
 
-This is:
-- wrong for `EnumSerializedByName` wich is always serialized using `name()` and deserialised using `valueOf()`
-- right for `BijectiveEnumSerializedByToString`
-- right for `EnumSerializedByToString` when `HttpMessageConverter` beans are used (`@RequestBody` and `@ResponseBody`), but wrong when the default `Converter<String, EnumSerializedByToString>` is used (`@RequestParam`)
+结果分析：
+- `EnumSerializedByName` 的结果**有误**——它始终使用 `name()` 进行序列化，并使用 `valueOf()` 进行反序列化
+- `BijectiveEnumSerializedByToString` 的结果**正确**
+- `EnumSerializedByToString` 的结果：使用 `HttpMessageConverter` beans 时（`@RequestBody` 和 `@ResponseBody`）**正确**，但使用默认的 `Converter<String, EnumSerializedByToString>` 时（`@RequestParam`）**有误**

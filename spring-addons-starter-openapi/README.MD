@@ -1,23 +1,23 @@
 # spring-addons-starter-openapi
 
-The maintainer behind `springdoc-openapi` refuses to consider Spring (de)serialization specificities in his lib. He even deleted (not just closed) the issue #2494 in which it was explained why Swagger can't reliably generate enum possible values as input / ouput of Spring REST APIs (and what should `springdoc-openapi` use to replace `swagger-core` default behavior).
+`springdoc-openapi` 的维护者拒绝在其库中考虑 Spring（反）序列化的特殊性。他甚至直接删除（而非仅仅关闭）了 issue #2494——该 issue 详细解释了为什么 Swagger 无法可靠地将枚举的可选值生成为 Spring REST API 的输入/输出规范，以及 `springdoc-openapi` 应该用什么来替代 `swagger-core` 的默认行为。
 
-## Enum possible values
-`springdoc-openapi` relies on `swagger-core` enums serialization to put possible values for enums in the spec. This isn't relevant because Spring never uses `swagger-core` to (de)serialize enumerated values. What Spring uses is:
-- converters provided by the `FormattingConversionService` for `@RequestParam`, `@RequestHeader`, `@PathVariable`, `@MatrixVariable` and `@CookieValue`
-- `HttpMessageConverter` to deserialize `@RequestBody` and serialize `@ResponseBody` in servlets
-- `HttpMessageReader` (for `@RequestBody`) and `HttpMessageWriter` (for `@ResponseBody`) in reactive applications
+## 枚举可选值
+`springdoc-openapi` 依赖 `swagger-core` 的枚举序列化来将枚举的可选值写入规范。这种做法并不合理，因为 Spring 从不使用 `swagger-core` 来（反）序列化枚举值。Spring 实际使用的是：
+- `FormattingConversionService` 提供的 converter，用于处理 `@RequestParam`、`@RequestHeader`、`@PathVariable`、`@MatrixVariable` 和 `@CookieValue`
+- servlet 应用中用 `HttpMessageConverter` 反序列化 `@RequestBody` 并序列化 `@ResponseBody`
+- 响应式应用中用 `HttpMessageReader`（处理 `@RequestBody`）和 `HttpMessageWriter`（处理 `@ResponseBody`）
 
-What `spring-addons-starter-openapi` does is:
-- scan the classpath to figure out if the app is a servlet or a reactive application
-- pick the relevant Spring beans from the classpath to (de)serialize a given enum
-- register a custom `ModelConverter` using Spring beans to have Swagger write the right serialized enum values in the OpenAPI spec
+`spring-addons-starter-openapi` 的工作原理是：
+- 扫描 classpath 以判断应用是 servlet 还是响应式应用
+- 从 classpath 中挑选相关的 Spring bean 来（反）序列化给定的枚举
+- 注册一个使用 Spring bean 的自定义 `ModelConverter`，使 Swagger 在 OpenAPI 规范中写入正确的枚举序列化值
 
-## Warning: this starter works only in servlets :/
-Most of the work for reactive applications is done already, but the owner of this repo hasen't found (yet) a way to synchronize `HttpMessageWriter`.
+## 警告：本 starter 目前仅支持 servlet 应用 :/
+响应式应用的大部分工作已经完成，但本仓库的维护者尚未找到同步 `HttpMessageWriter` 的方法。
 
-If you find a way to get `SpringReactiveEnumModelConverter#toWrittingExtractor` to work ([fix the `FIXME` in it](https://github.com/ch4mpy/spring-addons/blob/dfbe20387ae7c423c103b6e5b6d853087473a537/spring-addons-starter-openapi/src/main/java/com/c4_soft/springaddons/openapi/SpringReactiveEnumModelConverter.java#L158)), feel free to send a PR ;)
+如果你找到了让 `SpringReactiveEnumModelConverter#toWrittingExtractor` 正常工作的方法（[修复其中的 `FIXME`](https://github.com/ch4mpy/spring-addons/blob/dfbe20387ae7c423c103b6e5b6d853087473a537/spring-addons-starter-openapi/src/main/java/com/c4_soft/springaddons/openapi/SpringReactiveEnumModelConverter.java#L158)），欢迎提交 PR ;)
 
-To try your implementation, you can re-activate:
-- the `springReactiveEnumModelConverter` bean in `src/main/java/com/c4_soft/springaddons/openapi/SpringAddonsOpenapiAutoConfiguration.java`
-- the tests in `samples/enum-bug-reproducer-reactive/src/test/java/com/c4soft/EnumBugReproducerApplicationTests.java`
+要测试你的实现，可以重新启用：
+- `src/main/java/com/c4_soft/springaddons/openapi/SpringAddonsOpenapiAutoConfiguration.java` 中的 `springReactiveEnumModelConverter` bean
+- `samples/enum-bug-reproducer-reactive/src/test/java/com/c4soft/EnumBugReproducerApplicationTests.java` 中的测试用例
