@@ -12,9 +12,9 @@
 本仓库提供了[使用 OAuth2 / OIDC 配置 Spring RESTful 后端的教程](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#securing-spring-applications-with-oauth2)。**切记，与其花几周时间反复试错，不如花 15 分钟好好读一遍 README。** 因此，在开始实现之前，请务必仔细阅读 [_OAuth2 essentials_](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) 章节，以及 [`spring-addons-starter-oidc`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-oidc#spring-addons-starter-oidc) 和 [`spring-addons-starter-rest`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-rest#auto-configure-restclient-or-webclient-beans) 的 README。
 
 本仓库中有三篇教程已迁移至 Baeldung：
-- [Getting started with Keycloak & Spring Boot](https://www.baeldung.com/spring-boot-keycloak)
-- [Creating an OAuth2 BFF with `spring-cloud-gateway` and consuming it with Single-Page Applications](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
-- [Testing access control with mocked OAuth2 authentications](https://www.baeldung.com/spring-oauth-testing-access-control)
+- [Getting started with Keycloak & Spring Boot](documents/Getting%20started%20with%20Keycloak%20%26%20Spring%20Boot.md)
+- [Creating an OAuth2 BFF with `spring-cloud-gateway` and consuming it with Single-Page Applications](documents/OAuth2%20BFF%20With%20Spring%20Cloud%20Gateway.md)
+- [Testing access control with mocked OAuth2 authentications](documents/Testing%20Spring%20OAuth2%20Access-Control.md)
 
 ## [`spring-addons-starter-oidc`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-oidc)
 
@@ -103,7 +103,7 @@ com:
 相关资源：
 - [spring-addons-oauth2-test](https://github.com/fivetime/spring-addons/tree/master/spring-addons-oauth2-test) 包含测试注解，其 README 中有使用说明
 - [spring-addons-starter-oidc-test](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-oidc-test) 适用于使用 `spring-addons-starter-oidc` 的项目
-- [Baeldung article](https://www.baeldung.com/spring-oauth-testing-access-control)
+- [Baeldung article](documents/Testing%20Spring%20OAuth2%20Access-Control.md)
 - [samples](https://github.com/fivetime/spring-addons/tree/master/samples) 和 [tutorials](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials) 源码（包含大量单元测试和集成测试）
 
 ## 相关链接
@@ -111,8 +111,8 @@ com:
 - [`spring-addons-oauth2-test`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-oauth2-test) 用于向测试 security context 填充 OAuth2 authentication 实例的注解
 - [`spring-addons-starter-oidc-test`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-oidc-test) 简化使用 `spring-addons-starter-oidc` 的应用的单元测试
 - [`spring-addons-starter-rest`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-rest) 针对 `RestClient`、`WebClient` 和 `@HttpExchange` 代理的实验性自动配置（base-URL、Basic 和 OAuth2 Bearer 认证）
-- [Getting started with Keycloak & Spring Boot](https://www.baeldung.com/spring-boot-keycloak)
+- [Getting started with Keycloak & Spring Boot](documents/Getting%20started%20with%20Keycloak%20%26%20Spring%20Boot.md)
 - [OAuth2 security configuration tutorials](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#securing-spring-applications-with-oauth2)（含/不含 `spring-addons-starter-oidc` 两种版本）
-- [OAuth2 BFF tutorial](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
+- [OAuth2 BFF tutorial](documents/OAuth2%20BFF%20With%20Spring%20Cloud%20Gateway.md)
 - [Release Notes](https://github.com/fivetime/spring-addons/tree/master/release-notes.md)
 - [Maven-Central 备忘](https://github.com/fivetime/spring-addons/tree/master/maven-central.md)
