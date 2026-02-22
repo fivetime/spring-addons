@@ -11,11 +11,11 @@
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Utility classes for OAuth2 with Spring Security</description>
 
-    <url>https://github.com/ch4mpy/spring-addons/</url>
+    <url>https://github.com/fivetime/spring-addons/</url>
     <scm>
-        <connection>scm:git:git://github.com/ch4mpy/spring-addons.git</connection>
+        <connection>scm:git:git://github.com/fivetime/spring-addons.git</connection>
         <developerConnection>scm:git:git@github.com:ch4mpy/spring-addons.git</developerConnection>
-        <url>https://github.com/ch4mpy/spring-addons</url>
+        <url>https://github.com/fivetime/spring-addons</url>
         <tag>spring-addons-8.1.21</tag>
     </scm>
 

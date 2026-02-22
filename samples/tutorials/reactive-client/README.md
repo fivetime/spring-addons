@@ -5,7 +5,7 @@
 本仓库示例数量较多，所有示例均纳入 CI 以确保代码可编译且测试全部通过。遗憾的是，此 README 不会随源码变更自动更新。请将其作为理解源码的参考指引。**如需复制代码，请务必从源码中复制，而非从此 README 中复制。**
 
 ## 1. 项目初始化
-本教程在完成[前置条件](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites)之后开始，假设至少已配置 1 个 OIDC Provider（2 个更好），并且每个 OP 上都有拥有和没有 `NICE` 角色的用户。
+本教程在完成[前置条件](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#2-prerequisites)之后开始，假设至少已配置 1 个 OIDC Provider（2 个更好），并且每个 OP 上都有拥有和没有 `NICE` 角色的用户。
 
 ### 1.1. Spring Boot Starter
 与往常一样，从 http://start.spring.io/ 开始，添加以下依赖：
@@ -81,7 +81,7 @@ spring:
 以下几点值得注意：
 - 我们为 3 个不同的 provider 各定义了一个 `authorization_code` client registration，这意味着用户需要选择一个进行认证（如果只配置了一个 `authorization_code` client registration，则跳过选择提示）
 - 有一个 `ssl` profile，用于通过 SSL 运行应用
-- 你必须替换 issuer URI，以及按照[前置条件](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites)操作后获得的 client ID 和 secret（删除未配置的 provider 和 registration）
+- 你必须替换 issuer URI，以及按照[前置条件](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#2-prerequisites)操作后获得的 client ID 和 secret（删除未配置的 provider 和 registration）
 
 ### 1.3. 静态首页
 还需要一个静态的 `src/main/resources/static/index.html` 页面，以便在认证后有内容可看：
@@ -474,7 +474,7 @@ static class GrantedAuthoritiesMapperImpl implements GrantedAuthoritiesMapper {
                 .pathMatchers("/nice.html").hasAuthority("NICE")
                 .anyExchange().authenticated());
 ```
-现在，只有在[前置条件](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites)配置 OIDC Provider 时授予了 `NICE` 角色的用户，才能访问 [http://localhost:8080/nice.html](http://localhost:8080/nice.html) 页面（启用 `ssl` profile 时为 [https://localhost:8080/nice.html](https://localhost:8080/nice.html)）。
+现在，只有在[前置条件](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#2-prerequisites)配置 OIDC Provider 时授予了 `NICE` 角色的用户，才能访问 [http://localhost:8080/nice.html](http://localhost:8080/nice.html) 页面（启用 `ssl` profile 时为 [https://localhost:8080/nice.html](https://localhost:8080/nice.html)）。
 
 ## 4. 防止同时登录多个身份
 由于首页是静态页面（生成的登录页也是），它无法感知用户的认证状态。因此，已认证的用户可以继续用第二个 OIDC Provider 登录。
@@ -587,7 +587,7 @@ SecurityWebFilterChain clientSecurityFilterChain(
 ## 5. 总结
 在本教程中，我们配置了一个带有登录、登出和角色映射的 servlet OAuth2 client。
 
-但且慢，我们在这里所做的一切相当冗长，而几乎每个 OAuth2 client 都会用到这些配置。难道每次都要重复写这些吗？其实不必：本仓库提供了 [`spring-addons-webflux-client`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-client) Spring Boot starter 正是为此而生。如果出于某种原因不想使用它，也可以编写[自己的 starter](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration)，将我们在这里编写的配置封装起来。
+但且慢，我们在这里所做的一切相当冗长，而几乎每个 OAuth2 client 都会用到这些配置。难道每次都要重复写这些吗？其实不必：本仓库提供了 [`spring-addons-webflux-client`](https://github.com/fivetime/spring-addons/tree/master/webflux/spring-addons-webflux-client) Spring Boot starter 正是为此而生。如果出于某种原因不想使用它，也可以编写[自己的 starter](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration)，将我们在这里编写的配置封装起来。
 
 另外，如果我们确实需要用户同时持有多个 authorized client（例如同时在 Google 和 Facebook 上认证，以从同一个 client 查询 Google API 和 Facebook Graph），可以像上一节建议的那样提供一个自定义的 `ServerOAuth2AuthorizedClientRepository`。本仓库的 client starter 提供了这样的实现，它在用户 session 中按 issuer 存储认证信息，并在尝试检索 authorized client 前解析正确的认证（及其 subject）。同样，如果不想使用这些 starter，也只能[自己实现](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration)。
 

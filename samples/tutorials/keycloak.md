@@ -1,7 +1,7 @@
 # Development Keycloak Instance
 
 ## 1. Configure a Local Keycloak Instance
-If you do not have a SSL certificate yet, refer to instructions in [this repo](https://github.com/ch4mpy/self-signed-certificate-generation) to generate one and add it to bot your JRE cacerts file and your OS trusted root certificates.
+If you do not have a SSL certificate yet, refer to instructions in [this repo](https://github.com/fivetime/self-signed-certificate-generation) to generate one and add it to bot your JRE cacerts file and your OS trusted root certificates.
 
 Here is sample configuration for [Keycloak power by Quarkus](https://www.keycloak.org/downloads):
 ```
@@ -26,7 +26,7 @@ First go to "Clients" and click "Create Client" to add a `spring-addons-confiden
 - set `http://localhost:8080/*`, `https://localhost:8080/*`, `http://localhost:7443/*` and `https://localhost:7443/*` as "Valid redirect URIs"
 - set `+` for both "Valid post logout redirect URIs" and "Web origins"
 
-![confidential client creation screen-shot](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/keycloak-confidential.png)
+![confidential client creation screen-shot](https://github.com/fivetime/spring-addons/blob/master/.readme_resources/keycloak-confidential.png)
 
 Once the client declared, open its details to 
 - set `https://localhost:8080/backchannel_logout` as "Backchannel logout URL"

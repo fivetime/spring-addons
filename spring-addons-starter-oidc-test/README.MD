@@ -1,6 +1,6 @@
 # 使用 `spring-addons-starter-oidc` 的应用的单元测试与集成测试
 
-`spring-addons-starter-oidc-test` 构建在 [`spring-addons-oauth2-test`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) 之上，新增了以下功能：
+`spring-addons-starter-oidc-test` 构建在 [`spring-addons-oauth2-test`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-oauth2-test) 之上，新增了以下功能：
 - 将 `spring-addons-starter-oidc` 自动配置应用到测试 security context 的注解
 - 对 `MockMvc` 和 `WebTestClient` 的轻量封装，使测试请求的编写更加简便
 

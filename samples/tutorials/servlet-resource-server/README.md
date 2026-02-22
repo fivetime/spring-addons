@@ -7,7 +7,7 @@ We'll also see how to accept access tokens issued by several, potentially hetero
 There are quite a few samples, and all are part of CI to ensure that sources compile and all tests pass. Unfortunately, this README is not automatically updated when source changes. Please use it as a guidance to understand the source. **If you copy some code, be sure to do it from the source, not from this README**.
 
 ## 1. Project Initialization
-We start after [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites), and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on each OP.
+We start after [prerequisites](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#2-prerequisites), and consider that we have a minimum of 1 OIDC Provider configured (2 would be better) and users with and without `NICE` role declared on each OP.
 As usual, we'll start with http://start.spring.io/ adding the following dependencies:
 - Spring Web
 - OAuth2 Resource Server
@@ -102,7 +102,7 @@ spring:
 ```
 There are a few things worth noting here:
 - `spring.security.oauth2.resourceserver.jwt.issuer-uri` is single valued. This means that Spring Boot accepts OAuth2 identities issued only by a single OIDC Provider at a time. We use profiles to switch our resource server from one OP to another. This requires a restart, but we'll see how to configure spring-security to accept identities from several OIDC Providers in a single resource server instance.
-- there are values (issuer URIs) which need an edit with what was obtained when accomplishing [prerequisites](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites).
+- there are values (issuer URIs) which need an edit with what was obtained when accomplishing [prerequisites](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#2-prerequisites).
 
 ### 3.2. Security Filter-Chain
 As development and production environments will likely allow different origins, we need a CORS configuration function taking allowed-origins as parameter.
@@ -391,6 +391,6 @@ SecurityFilterChain filterChain(
 ## 5. Conclusion
 In this tutorial, we configured a servlet (WebMVC) Spring Boot 3 application as an OAuth2 resource server with authorities mapping to enable RBAC using roles defined in as many OIDC Providers (or Keycloak realms) as we need, no matter if they send user roles in the same claim(s).
 
-But wait, what we did here is pretty verbose and we'll need it in almost any OAuth2 resource server we write. Do we really have to write all that again and again? Not really: this repo provides with a [`spring-addons-webmvc-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server) Spring Boot starter just for that, with a [sample usage there](https://github.com/ch4mpy/spring-addons/tree/master/samples/webmvc-jwt-default). And if for whatever reason you don't want to use that one, you can still write [your own starter](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration) to wrap the configuration we wrote here.
+But wait, what we did here is pretty verbose and we'll need it in almost any OAuth2 resource server we write. Do we really have to write all that again and again? Not really: this repo provides with a [`spring-addons-webmvc-jwt-resource-server`](https://github.com/fivetime/spring-addons/tree/master/webmvc/spring-addons-webmvc-jwt-resource-server) Spring Boot starter just for that, with a [sample usage there](https://github.com/fivetime/spring-addons/tree/master/samples/webmvc-jwt-default). And if for whatever reason you don't want to use that one, you can still write [your own starter](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration) to wrap the configuration we wrote here.
 
 You might also explore source code to have a look at how to mock identities in unit and integration tests and assert access-control is behaving as expected. All samples and tutorials include detailed access-control tests.

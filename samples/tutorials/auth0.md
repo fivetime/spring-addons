@@ -41,7 +41,7 @@ http://localhost:7443/ui/greet
 
 The issuer to configure in tutorials is `https://{Domain}/`. The "Domain" placeholder is to be retrieved from from the same application details screen, with Client ID and Client Secret. **Mind the trailing slash**.
 
-![Application details](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/auth0-application-details.png)
+![Application details](https://github.com/fivetime/spring-addons/blob/master/.readme_resources/auth0-application-details.png)
 
 Next, create an action to enrich the access tokens with user data:
 - browse to "Actions -> Flows -> Login"

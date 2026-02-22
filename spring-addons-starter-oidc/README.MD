@@ -70,10 +70,10 @@
 不过，除非你对 Spring Security 的 OAuth2 配置有深入了解，使用 `spring-addons-starter-oidc` 实际上可能比自行摸索配置更安全。而且本仓库的使用者越多，就越安全：更多人能发现潜在问题，更多人能在原作者失联时维护它，如果某些功能足够受欢迎，Spring 团队甚至可能将其纳入官方框架。
 
 此外，如果你在任何时候想要不再使用 `spring-addons-starter-oidc`，只需自己编写 Spring Security 配置即可。如需参考，以下教程均未使用 `spring-addons-starter-oidc`（仅使用 `spring-boot-starter-oauth2-client` 或 `spring-boot-starter-oauth2-resource-server`）：
-- [reactive-client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-client)
-- [reactive-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server)
-- [servlet-client](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-client)
-- [servlet-resource-server](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server)
+- [reactive-client](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials/reactive-client)
+- [reactive-resource-server](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials/reactive-resource-server)
+- [servlet-client](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials/servlet-client)
+- [servlet-resource-server](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials/servlet-resource-server)
 
 使用此类仓库资源有哪些已知风险，又该如何防范？
 - *如果依赖更新停止、PR 不再被合并怎么办？* 你可以 fork 本仓库，从你喜欢的最后一个 tag 新建分支继续维护。
@@ -537,7 +537,7 @@ Microsoft 授权服务器（如 Entra ID，前身为 Azure Active Directory / AA
 ……直觉性极强的配置方式。
 
 ### <a name="2-12"/>如何添加其他请求授权机制（如 `Basic` 认证）？
-正如 [OAuth2 Essentials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) 中所述，每种请求授权机制应独立在各自的 security filter chain 中。
+正如 [OAuth2 Essentials](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) 中所述，每种请求授权机制应独立在各自的 security filter chain 中。
 
 当 Spring 应用配置了多个 security filter chain 时，这些 filter chain 应满足：
 - 有序：bean 定义应以不同的 `@Order` 值装饰
@@ -633,9 +633,9 @@ com:
 
 ## 3. <a name="usage"/>基本使用方法
 
-本节仅介绍最基本的使用方法。关于高级自动配置和默认值覆盖，请参阅 [1. 功能特性](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#spring-addons-starter-oidc)。
+本节仅介绍最基本的使用方法。关于高级自动配置和默认值覆盖，请参阅 [1. 功能特性](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-oidc#spring-addons-starter-oidc)。
 
-**如果你不确定自己需要的是带 `oauth2Login` 的 OAuth2 client（基于 session 而非 access token 的安全机制）还是 OAuth2 resource server 配置（基于 access token 而非 session、不带 `oauth2Login` 的安全机制），请阅读教程中的 [OAuth2 essentials 章节](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials)，这将为你节省大量时间和精力。**
+**如果你不确定自己需要的是带 `oauth2Login` 的 OAuth2 client（基于 session 而非 access token 的安全机制）还是 OAuth2 resource server 配置（基于 access token 而非 session、不带 `oauth2Login` 的安全机制），请阅读教程中的 [OAuth2 essentials 章节](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials)，这将为你节省大量时间和精力。**
 
 在依赖中添加 `com.c4-soft.springaddons:spring-addons-starter-oidc`，以及 `org.springframework.boot:spring-boot-starter-oauth2-client` 或 `org.springframework.boot:spring-boot-starter-oauth2-resource-server`。
 
@@ -643,7 +643,7 @@ com:
 
 若配置使用 access token introspection 的 OAuth2 resource server，需定义标准的 Spring Boot `opaquetoken` 属性。
 
-然后，根据你的使用场景定义相关的 `com.c4-soft.springaddons.oidc` 属性。可参考大量完整的 [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) 和 [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials)，以下是针对不同使用场景和 OpenID Provider 的几个示例：
+然后，根据你的使用场景定义相关的 `com.c4-soft.springaddons.oidc` 属性。可参考大量完整的 [samples](https://github.com/fivetime/spring-addons/tree/master/samples) 和 [tutorials](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials)，以下是针对不同使用场景和 OpenID Provider 的几个示例：
 
 ### 3.1. <a name="3-1"/>使用 JWT decoder 的 Resource Server
 

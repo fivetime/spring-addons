@@ -303,4 +303,4 @@ class GreetingControllerTest {
 ```
 
 ## 6. 总结
-本示例引导你构建了一个带有 JWT decoder 和自定义 `Authentication` 的 servlet（webmvc）应用。如需配置 webflux（响应式）resource server 或 access token introspection 的帮助，请参阅 [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples)。
+本示例引导你构建了一个带有 JWT decoder 和自定义 `Authentication` 的 servlet（webmvc）应用。如需配置 webflux（响应式）resource server 或 access token introspection 的帮助，请参阅 [samples](https://github.com/fivetime/spring-addons/tree/master/samples)。

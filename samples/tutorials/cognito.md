@@ -5,21 +5,21 @@ First thing to do is registrering for a free account. If you don't have one, vis
 
 Then, connect to https://us-east-2.console.aws.amazon.com and search for `cognito`:
 
-![AWS console, browse to Cognito](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/aws-console.png)
+![AWS console, browse to Cognito](https://github.com/fivetime/spring-addons/blob/master/.readme_resources/aws-console.png)
 
 Click `Create user pool`:
 1. For best user experience, you may enable `Federated Identity Providers` for Google, Facebook or both, but this requires you to have applications declared on their side. You can just ignore that if you haven't.
 
-![Create user poll step 1](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/create-user-pool-1.png)
+![Create user poll step 1](https://github.com/fivetime/spring-addons/blob/master/.readme_resources/create-user-pool-1.png)
 
 2. As security requirements, to avoid any cost related to SMS, we'll opt for optional MFA with authenticator apps and recovery from email only.
 
-![Create user poll step 2](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/create-user-pool-2.png)
+![Create user poll step 2](https://github.com/fivetime/spring-addons/blob/master/.readme_resources/create-user-pool-2.png)
 
 3. Keep all defaults for sign-up experience
 4. For message delivery, we'll switch to `Send email with Cognito`:
 
-![Create user poll step 4](https://github.com/ch4mpy/spring-addons/blob/master/.readme_resources/create-user-pool-4.png)
+![Create user poll step 4](https://github.com/fivetime/spring-addons/blob/master/.readme_resources/create-user-pool-4.png)
 
 5. Enter Federated Identity providers credentials for those you picked at step 1 (if any)
 6. Enter 

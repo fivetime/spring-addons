@@ -7,7 +7,7 @@
 本仓库示例数量较多，所有示例均纳入 CI 以确保代码可编译且测试全部通过。遗憾的是，此 README 不会随源码变更自动更新。请将其作为理解源码的参考指引。**如需复制代码，请务必从源码中复制，而非从此 README 中复制。**
 
 ## 1. 项目初始化
-本教程在完成[前置条件](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites)之后开始，假设至少已配置 1 个 OIDC Provider（2 个更好），并且每个 OP 上都有拥有和没有 `NICE` 角色的用户。与往常一样，从 http://start.spring.io/ 开始，添加以下依赖：
+本教程在完成[前置条件](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#2-prerequisites)之后开始，假设至少已配置 1 个 OIDC Provider（2 个更好），并且每个 OP 上都有拥有和没有 `NICE` 角色的用户。与往常一样，从 http://start.spring.io/ 开始，添加以下依赖：
 - Spring Reactive Web
 - OAuth2 Resource Server
 - Lombok
@@ -101,7 +101,7 @@ spring:
 ```
 以下几点值得注意：
 - `spring.security.oauth2.resourceserver.jwt.issuer-uri` 是单值配置，这意味着 Spring Boot 一次只能接受来自单个 OIDC Provider 签发的 OAuth2 身份。我们通过 profile 在不同 OP 之间切换，这需要重启，但我们后面会介绍如何配置 spring-security 让单个 resource server 实例同时接受来自多个 OIDC Provider 的身份。
-- 其中有些值（issuer URI）需要替换为完成[前置条件](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#2-prerequisites)时获取的实际值。
+- 其中有些值（issuer URI）需要替换为完成[前置条件](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#2-prerequisites)时获取的实际值。
 
 ### 3.2. Security Filter Chain
 由于开发和生产环境允许的 origin 可能不同，我们需要一个以 allowed-origins 为参数的 CORS 配置函数。
@@ -400,4 +400,4 @@ SecurityWebFilterChain filterChain(
 ## 6. 总结
 在本教程中，我们将一个响应式（WebFlux）Spring Boot 3 应用配置为 OAuth2 resource server，并映射 authorities 以使用任意数量的 OIDC Provider（或 Keycloak realm）上定义的角色实现 RBAC，无论这些 Provider 是否将用户角色存放在相同的 claim 中。
 
-但且慢，我们在这里所做的一切相当冗长，而几乎每个 OAuth2 resource server 都会用到这些配置。难道每次都要重复写这些吗？其实不必：本仓库提供了 [`spring-addons-webflux-jwt-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server) Spring Boot starter 正是为此而生，[这里有一个使用示例](https://github.com/ch4mpy/spring-addons/tree/master/samples/webflux-jwt-default)。如果出于某种原因不想使用它，也可以编写[自己的 starter](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration)，将我们在这里编写的配置封装起来。
+但且慢，我们在这里所做的一切相当冗长，而几乎每个 OAuth2 resource server 都会用到这些配置。难道每次都要重复写这些吗？其实不必：本仓库提供了 [`spring-addons-webflux-jwt-resource-server`](https://github.com/fivetime/spring-addons/tree/master/webflux/spring-addons-webflux-jwt-resource-server) Spring Boot starter 正是为此而生，[这里有一个使用示例](https://github.com/fivetime/spring-addons/tree/master/samples/webflux-jwt-default)。如果出于某种原因不想使用它，也可以编写[自己的 starter](https://docs.spring.io/spring-boot/docs/current/reference/html/features.html#features.developing-auto-configuration)，将我们在这里编写的配置封装起来。

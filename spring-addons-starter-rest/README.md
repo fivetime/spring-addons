@@ -56,7 +56,7 @@ com:
 
 ## <a name="usage">2. 使用方法
 
-为了充分发挥 `RestClient`/`WebClient` 的价值，可以将其提供给 [`@HttpExchange` 代理工厂](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#exposing-a-generated-httpexchange-proxy-as-a-bean)。
+为了充分发挥 `RestClient`/`WebClient` 的价值，可以将其提供给 [`@HttpExchange` 代理工厂](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-rest#exposing-a-generated-httpexchange-proxy-as-a-bean)。
 
 提醒一下，`@HttpExchange` 接口从客户端视角描述一个 REST API，上述代理是用于消费该 API 的自动生成实现类。可以将其理解为 REST 领域等价于关系型数据库中 `@Repository` 的存在。
 

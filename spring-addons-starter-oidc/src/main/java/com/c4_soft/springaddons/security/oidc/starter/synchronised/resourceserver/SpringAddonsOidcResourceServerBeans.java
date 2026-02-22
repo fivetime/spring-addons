@@ -66,7 +66,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * <ul>
  * <li>springAddonsResourceServerSecurityFilterChain: applies CORS, CSRF, anonymous, sessionCreationPolicy, SSL, redirect and 401 instead of
  * redirect to login as defined in <a href=
- * "https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-oauth2/src/main/java/com/c4_soft/springaddons/security/oauth2/config/SpringAddonsSecurityProperties.java">SpringAddonsSecurityProperties</a></li>
+ * "https://github.com/fivetime/spring-addons/blob/master/spring-addons-oauth2/src/main/java/com/c4_soft/springaddons/security/oauth2/config/SpringAddonsSecurityProperties.java">SpringAddonsSecurityProperties</a></li>
  * <li>authorizePostProcessor: a bean of type {@link ResourceServerExpressionInterceptUrlRegistryPostProcessor} to fine tune access control
  * from java configuration. It applies to all routes not listed in "permit-all" property configuration. Default requires users to be
  * authenticated. <b>This is a bean to provide in your application configuration if you prefer to define fine-grained access control rules

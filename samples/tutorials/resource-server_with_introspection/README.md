@@ -9,7 +9,7 @@
 对于每个处理的请求，resource server 都会向授权服务器发送一个请求以获取 token 详情。与基于 JWT decoder 的安全机制（只需访问授权服务器一次以获取签名公钥）相比，这会**对性能产生明显影响**。
 
 ## 2. 授权服务器要求
-假设已满足[教程前置条件](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites)，并已配置至少 1 个 OIDC Provider，包含用于用户认证的 client 和 authorization-code。由于很难判断一个不透明 token 来自哪个 OP，我们只接受来自单个 issuer 的身份。若要同时支持多租户和 token introspection，则需要通过自定义请求头或其他方式携带 issuer URI，以便 resource server 知道应向哪里进行 introspection。这种额外复杂度超出了本教程的范围，因此我们改用 profile 在不同 OP 之间切换。
+假设已满足[教程前置条件](https://github.com/fivetime/spring-addons/blob/master/samples/tutorials/README.md#prerequisites)，并已配置至少 1 个 OIDC Provider，包含用于用户认证的 client 和 authorization-code。由于很难判断一个不透明 token 来自哪个 OP，我们只接受来自单个 issuer 的身份。若要同时支持多租户和 token introspection，则需要通过自定义请求头或其他方式携带 issuer URI，以便 resource server 知道应向哪里进行 introspection。这种额外复杂度超出了本教程的范围，因此我们改用 profile 在不同 OP 之间切换。
 
 Introspection endpoint 通过 client-credentials 流程访问。对于符合 introspection 规范的每个 OP，应配置一个支持该流程的 client（可以是与用户认证相同的 client，也可以是另一个）。
 

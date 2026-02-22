@@ -4,7 +4,7 @@
 For Spring Boot 4
 
 ### `9.0.5-M1`
-- [gh-284](https://github.com/ch4mpy/spring-addons/issues/284) Configurable Back-Channel `LogoutHandler` bean
+- [gh-284](https://github.com/fivetime/spring-addons/issues/284) Configurable Back-Channel `LogoutHandler` bean
 
 ### `9.0.4-M1`
 - enable overriding the default HTTP status of OAuth2 client responses with `response_http_status` request parameter (in addition to `X-RESPONSE-STATUS` header). This enables to ask a specific status for instance when setting the `location` of a browser tab, or the action of a `<form>` tag.
@@ -13,16 +13,16 @@ For Spring Boot 4
 - Apply `isSecure` (https instead of http) and `csrf` to MockMvcSupport when using `.get(...)`, `.post(...)`, etc.
 
 ### `9.0.2-M1`
-- Add SSL bundle auto-configuration for `RestClient` and `WebClient`. See [the manual](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#ssl-bundles) for details.
+- Add SSL bundle auto-configuration for `RestClient` and `WebClient`. See [the manual](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-rest#ssl-bundles) for details.
 
 ### `9.0.0-M1`
-- [gh-281](https://github.com/ch4mpy/spring-addons/issues/281) Compatibility with Spring Boot 4
+- [gh-281](https://github.com/fivetime/spring-addons/issues/281) Compatibility with Spring Boot 4
 
 ## `8.x`
 For Spring Boot 3
 
 ### `8.1.24`
-- [gh-286](https://github.com/ch4mpy/spring-addons/pull/286) Extended CSRF cookie customization via a new `Cookie[Server]CsrfTokenRepositoryPostProcessor` interface for an optional bean. Sample usage:
+- [gh-286](https://github.com/fivetime/spring-addons/pull/286) Extended CSRF cookie customization via a new `Cookie[Server]CsrfTokenRepositoryPostProcessor` interface for an optional bean. Sample usage:
 ```java
 @Bean
 CookieCsrfTokenRepositoryPostProcessor csrfCookiePostProcessor() {
@@ -34,7 +34,7 @@ CookieCsrfTokenRepositoryPostProcessor csrfCookiePostProcessor() {
 ```
 
 ### `8.1.23`
-- [gh-284](https://github.com/ch4mpy/spring-addons/issues/284) Configurable Back-Channel `LogoutHandler` bean
+- [gh-284](https://github.com/fivetime/spring-addons/issues/284) Configurable Back-Channel `LogoutHandler` bean
 - Boot `3.5.5` as transient dependency
 
 ### `8.1.22`
@@ -44,27 +44,27 @@ CookieCsrfTokenRepositoryPostProcessor csrfCookiePostProcessor() {
 - Apply `isSecure` (https instead of http) and `csrf` to MockMvcSupport when using `.get(...)`, `.post(...)`, etc.
 
 ### `8.1.20`
-- Add SSL bundle auto-configuration for `RestClient` and `WebClient`. See [the manual](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#ssl-bundles) for details.
+- Add SSL bundle auto-configuration for `RestClient` and `WebClient`. See [the manual](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-rest#ssl-bundles) for details.
 - Transitive dependencies manage by Spring Boot `3.5.4`
 
 ### `8.1.18`
 - Transitive dependencies manage by Spring Boot `3.5.3` (after the regression on application properties in `3.5.1` & `3.5.2`)
 
 ### `8.1.16`
-- [gh-276](https://github.com/ch4mpy/spring-addons/issues/276) Some authorization servers allow the definition of roles containing spaces or even commas. `ConfigurableJwtGrantedAuthoritiesConverter` now splits on ` ` (space) or `,` only `String` claims (and not the values of `List<String>` claims any more).
+- [gh-276](https://github.com/fivetime/spring-addons/issues/276) Some authorization servers allow the definition of roles containing spaces or even commas. `ConfigurableJwtGrantedAuthoritiesConverter` now splits on ` ` (space) or `,` only `String` claims (and not the values of `List<String>` claims any more).
 
 ### `8.1.15`
-- [gh-271](https://github.com/ch4mpy/spring-addons/issues/271) `RestClient` & `WebClient` auto-configured by `spring-addons-starter-rest` now scope tokens issued with client credentials to the application (Spring Security's default is user, which is a waste of resources and a source of latency).
+- [gh-271](https://github.com/fivetime/spring-addons/issues/271) `RestClient` & `WebClient` auto-configured by `spring-addons-starter-rest` now scope tokens issued with client credentials to the application (Spring Security's default is user, which is a waste of resources and a source of latency).
 
 ### `8.1.14`
-- [gh-273](https://github.com/ch4mpy/spring-addons/issues/273): Use `servlet.context-path` or `webflux.base-path` when building default OAuth2 URIs. Starting from Spring Boot `3.5.0`, the OAuth2 URIs are relative by default, which solves compatibility issues with reverse proxies. Only the post-logout URI should contain an authority as it is provided to the authorization server so that it redirects back to the UI after RP-Initiated Logout (⚠️ when removing the `client-uri` property or when setting it with a relative URI, set the `post-login-redirect-host` with a URI containing an authority). The URIs built by spring-addons are now using the 1st provided value in the following order:
+- [gh-273](https://github.com/fivetime/spring-addons/issues/273): Use `servlet.context-path` or `webflux.base-path` when building default OAuth2 URIs. Starting from Spring Boot `3.5.0`, the OAuth2 URIs are relative by default, which solves compatibility issues with reverse proxies. Only the post-logout URI should contain an authority as it is provided to the authorization server so that it redirects back to the UI after RP-Initiated Logout (⚠️ when removing the `client-uri` property or when setting it with a relative URI, set the `post-login-redirect-host` with a URI containing an authority). The URIs built by spring-addons are now using the 1st provided value in the following order:
   - `spring-addons-starter-oidc`'s `client-uri` property
   - Spring Boot Web's `server.servlet.context-path` or `server.webflux.base-path` depending on the application type
   - `/`
 - Spring Boot `3.5.0` to manage default transitive dependencies (designed to work with Spring Cloud `2025.0.0`)
 
 ### `8.1.13`
-- [gh-267](https://github.com/ch4mpy/spring-addons/issues/267) Prevent [Open Redirect (CWE-601)](https://cwe.mitre.org/data/definitions/601.html) attacks. The post login/logout URIs must now be part of whitelists defined with `post-login-allowed-uri-patterns` and `post-logout-allowed-uri-patterns` properties. For backward compatibility, if these properties are left blank, all post login/logout URIs composed of only a path (no scheme / authority) as well as those with the same scheme and authority as the `client-uri` property are allowed.
+- [gh-267](https://github.com/fivetime/spring-addons/issues/267) Prevent [Open Redirect (CWE-601)](https://cwe.mitre.org/data/definitions/601.html) attacks. The post login/logout URIs must now be part of whitelists defined with `post-login-allowed-uri-patterns` and `post-logout-allowed-uri-patterns` properties. For backward compatibility, if these properties are left blank, all post login/logout URIs composed of only a path (no scheme / authority) as well as those with the same scheme and authority as the `client-uri` property are allowed.
 
 Sample configuration stricter than defaults:
 ```yaml
@@ -100,26 +100,26 @@ In case of mismatch of post login/logout headers & request params, the authentic
 - Boot `3.4.5` as default transient dependency
 
 ### `8.1.11`
-- [gh-264](https://github.com/ch4mpy/spring-addons/pull/264) Use `RestClient.Builder` and `WebClient.Builder` exposed by the "official" Boot starter as base for those exposed by `spring-addons`
+- [gh-264](https://github.com/fivetime/spring-addons/pull/264) Use `RestClient.Builder` and `WebClient.Builder` exposed by the "official" Boot starter as base for those exposed by `spring-addons`
 
 ### `8.1.10`
-- [gh-263](https://github.com/ch4mpy/spring-addons/pull/263) Support empty security context with WebClient auto-configured with `forward-bearer=true`
+- [gh-263](https://github.com/fivetime/spring-addons/pull/263) Support empty security context with WebClient auto-configured with `forward-bearer=true`
 
 ### `8.1.9`
-- [gh-258](https://github.com/ch4mpy/spring-addons/issues/259) Class cast exception with `@WithMockJwtAuth` meta-annotaions
+- [gh-258](https://github.com/fivetime/spring-addons/issues/259) Class cast exception with `@WithMockJwtAuth` meta-annotaions
 
 ### `8.1.8`
-- [gh-254](https://github.com/ch4mpy/spring-addons/issues/254) Inject the authorized client manager and repository to SpringAddonsRestClientBeanDefinitionRegistryPostProcessor only when OAuth2 authorization is configured to use a registration.
+- [gh-254](https://github.com/fivetime/spring-addons/issues/254) Inject the authorized client manager and repository to SpringAddonsRestClientBeanDefinitionRegistryPostProcessor only when OAuth2 authorization is configured to use a registration.
 
 ### `8.1.7`
-- [gh-253](https://github.com/ch4mpy/spring-addons/issues/253) Fix the scope of `spring-security-config` which was declared twice in `spring-addons-oauth2`, `spring-addons-oauth2-test` and `spring-addons-starter-oidc` poms: once with `compile` and a then as `optional` & `provided`. Only the 2nd is necessary, so removed 1st.
+- [gh-253](https://github.com/fivetime/spring-addons/issues/253) Fix the scope of `spring-security-config` which was declared twice in `spring-addons-oauth2`, `spring-addons-oauth2-test` and `spring-addons-starter-oidc` poms: once with `compile` and a then as `optional` & `provided`. Only the 2nd is necessary, so removed 1st.
 
 ### `8.1.5`
-- [gh-249](https://github.com/ch4mpy/spring-addons/issues/249) Add a property to disable SSL certificates validation for auto-configured REST clients. When `client-http-request-factory-impl=jdk`, only root authority validation is disabled (not the hostname, so the certificate CN or altnames must match the URL hostame). For other request factory implementations (`jdk` and `jetty`), both root authority and hostname validations are disabled.
+- [gh-249](https://github.com/fivetime/spring-addons/issues/249) Add a property to disable SSL certificates validation for auto-configured REST clients. When `client-http-request-factory-impl=jdk`, only root authority validation is disabled (not the hostname, so the certificate CN or altnames must match the URL hostame). For other request factory implementations (`jdk` and `jetty`), both root authority and hostname validations are disabled.
 - Bump transient dependency on Spring Boot to `3.4.4`
 
 ### `8.1.4`
-- [gh-247](https://github.com/ch4mpy/spring-addons/issues/247) `WebClient` beans auto-configured by `spring-addons-starter-rest` should take the `(Reactive)OAuth2AuthorizedClientManager` from the application context instead of building one from authorized client service and repo.
+- [gh-247](https://github.com/fivetime/spring-addons/issues/247) `WebClient` beans auto-configured by `spring-addons-starter-rest` should take the `(Reactive)OAuth2AuthorizedClientManager` from the application context instead of building one from authorized client service and repo.
 
 ### `8.1.3`
 - Boot `3.4.3` as transient dependency
@@ -131,7 +131,7 @@ In case of mismatch of post login/logout headers & request params, the authentic
 - Drop the multi-tenancy support for `oauth2Login`. Spring Security is way too targetted to single tenancy and the work-arounds are a nightmare to maintain. So, when configuring more than one `registration` with `authorization_code`, make sure that a user is logged out before allowing him to log in again. The `resource-server_with_ui` is modified with this new paradigm.
 - Fix the URIs generated by the default `InvalidSessionStrategy` introduced in `8.1.0`
 - Switch from the deprecated `OAuth2AuthorizedClientProvider` (using `RestTemplate`) to the recent ones using `RestClient`
-- Make the `RestClient`/`WebClient` used by the `(Reactive)OAuth2AuthorizedClientProvider` [easily configurable](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#2-13)
+- Make the `RestClient`/`WebClient` used by the `(Reactive)OAuth2AuthorizedClientProvider` [easily configurable](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-oidc#2-13)
 
 ### `8.1.0`
 - Change the default `InvalidSessionStrategy` in the auto-configured security filter chain for servlets with `oauth2Login`. The new behavior is to create a new (anonymous) session and redirect to the same URI (retry with a new session cookie). This sensible default in most cases (including the servlet version of Spring Cloud Gateway configured as an OAuth2 BFF) and can be modified with `invalid-session` properties. For instance, to return a `401` with a `Location` header pointing to the `/login` endpoint (which should be included among `security-matcher` and `permit-all`):
@@ -201,15 +201,15 @@ com:
 - Fix the token params for apps without `oauth2Login` and the new `com.c4-soft.springaddons.oidc.client.token-params` property (the params where applied only with the deprecated `com.c4-soft.springaddons.oidc.client.token-request-params`)
 
 ### `8.0.0`
-- [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) now expose as `@Bean` some `RestClient` and `WebClient` instances (or builders) with the following configured using application properties:
+- [`spring-addons-starter-rest`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-rest) now expose as `@Bean` some `RestClient` and `WebClient` instances (or builders) with the following configured using application properties:
   - Base URI
   - `Basic` or `Bearer` authorization. For the second, with a choice of using an OAuth2 client registration or forwarding the access token in the security context.
   - Connection & read timeouts
   - HTTP or SOCKS proxy, with consideration of the standard `HTTP_PROXY` and `NO_PROXY` environment variables (finer-grained configuration can be applied with custom properties)
-- [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc) auto-configuration for `oauth2Login` is improved with:
+- [`spring-addons-starter-oidc`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-oidc) auto-configuration for `oauth2Login` is improved with:
   - Working [Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html), even with cookie-based CSRF protection and `logout+jwt` tokens (which makes it finally usable with [OAuth2 BFF](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2) & [Keycloak](https://www.baeldung.com/spring-boot-keycloak)).
   - Configurable status for unauthorized requests. The default is still `302 Found` (redirect to login), but it's a snap to change it to `401 Unauthorized` (like REST APIs should return, even stateful ones).
-- `OAuthentication` now extends `AbstractOAuth2TokenAuthenticationToken` for a better integration with the rest of the Spring Security ecosystem. See the [migration guide](https://github.com/ch4mpy/spring-addons/tree/master/migrate-to-8.0.0.md) for details.
+- `OAuthentication` now extends `AbstractOAuth2TokenAuthenticationToken` for a better integration with the rest of the Spring Security ecosystem. See the [migration guide](https://github.com/fivetime/spring-addons/tree/master/migrate-to-8.0.0.md) for details.
 
 ## `7.x` Branch
 For Spring Boot 3.3.x.
@@ -226,7 +226,7 @@ For Spring Boot 3.3.x.
 - Boot `3.3.3` as transitive dependency
 
 ### `7.8.9`
-- Fix [gh-226](https://github.com/ch4mpy/spring-addons/issues/226): broken introspection response parsing in reactive applications
+- Fix [gh-226](https://github.com/fivetime/spring-addons/issues/226): broken introspection response parsing in reactive applications
 
 ### `7.8.8`
 - Boot `3.3.2` as transitive dependency
@@ -252,10 +252,10 @@ com:
 ```
 
 ### `7.8.6`
-- Fix [gh-203](https://github.com/ch4mpy/spring-addons/issues/203): CSRF protection for SPAs on `spring-cloud-gateway` was breaking  requests forwarding when content-type was `application/x-www-form-urlencoded`
+- Fix [gh-203](https://github.com/fivetime/spring-addons/issues/203): CSRF protection for SPAs on `spring-cloud-gateway` was breaking  requests forwarding when content-type was `application/x-www-form-urlencoded`
 
 ### `7.8.5`
-- Fix [gh-219](https://github.com/ch4mpy/spring-addons/issues/219): cast timestamp claims to `Long` instead of `Integer` in `@WithJwt` Authentication factory
+- Fix [gh-219](https://github.com/fivetime/spring-addons/issues/219): cast timestamp claims to `Long` instead of `Integer` in `@WithJwt` Authentication factory
 
 ### `7.8.4`
 - Spring Boot `3.3.1` and Cloud `2023.0.2` as transitive dependencies
@@ -271,7 +271,7 @@ com:
 - Spring Boot `3.3.0` as transitive dependency
 
 ### `7.7.0`
-- [gh-213](https://github.com/ch4mpy/spring-addons/issues/213): native-images compatibility:
+- [gh-213](https://github.com/fivetime/spring-addons/issues/213): native-images compatibility:
   - add missing `@NestedConfigurationProperty` to `SpringAddonsOidcProperties#client` and `SpringAddonsOidcProperties#resourceserver`
   - declare all other `@ConfigurationProperty` as nested classes of either `SpringAddonsOidcProperties`, `SpringAddonsOidcClientProperties` or `SpringAddonsOidcResourceServerProperties`
 
@@ -350,19 +350,19 @@ public class MyOAuth2AuthorizationRequestResolver extends SpringAddonsOAuth2Auth
 ```
 
 ### `7.6.8`
-- [gh-196](https://github.com/ch4mpy/spring-addons/pull/196) Fix NullPointerException when an HTTP request does not have an X-XSRF-TOKEN header in reactive clients configured with XSRF protection
+- [gh-196](https://github.com/fivetime/spring-addons/pull/196) Fix NullPointerException when an HTTP request does not have an X-XSRF-TOKEN header in reactive clients configured with XSRF protection
 
 ### `7.6.7`
 - Fix gh-195: RP-Initiated Logout disabling condition was incorrectly modified (not working when logout conf was missing)
 
 ### `7.6.6`
-- [gh-195](https://github.com/ch4mpy/spring-addons/pull/195) Fix the possibility to override the logout request uri (end_session endpoint)
+- [gh-195](https://github.com/fivetime/spring-addons/pull/195) Fix the possibility to override the logout request uri (end_session endpoint)
 
 ### `7.6.5`
-- [gh-192](https://github.com/ch4mpy/spring-addons/issues/192) `spring-security-oauth2-resource-server`, `spring-security-oauth2-client` and `spring-webflux` should be `optional` dependencies
+- [gh-192](https://github.com/fivetime/spring-addons/issues/192) `spring-security-oauth2-resource-server`, `spring-security-oauth2-client` and `spring-webflux` should be `optional` dependencies
 
 ### `7.6.4`
-- add [a micro-starter](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-openapi) to walk around [`springdoc-openapi` limitations with enums](https://github.com/springdoc/springdoc-openapi/issues/2494) (only for servlets for now)
+- add [a micro-starter](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-openapi) to walk around [`springdoc-openapi` limitations with enums](https://github.com/springdoc/springdoc-openapi/issues/2494) (only for servlets for now)
 
 ### `7.6.3`
 - Spring Boot 3.2.3
@@ -370,7 +370,7 @@ public class MyOAuth2AuthorizationRequestResolver extends SpringAddonsOAuth2Auth
 - move [the BFF tutorial to Baeldung](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2). It is also refreshed and now contains sample implementations for React (Next.js) and Vue (Vite).
 
 ### `7.6.0`
-- move the experimental support for `RestClient` and `WebClient` to a dedicated starter: [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest). The reasons for that are:
+- move the experimental support for `RestClient` and `WebClient` to a dedicated starter: [`spring-addons-starter-rest`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-rest). The reasons for that are:
   * `spring-addons-starter-oidc` is not necessary to use this helpers
   * OAuth2 authorization is optional for REST clients
 
@@ -378,23 +378,23 @@ public class MyOAuth2AuthorizationRequestResolver extends SpringAddonsOAuth2Auth
 - experimental support beans for `RestClient` and `WebClient`
 
 ### `7.5.3`
-- [gh-188](https://github.com/ch4mpy/spring-addons/issues/188) Fix unnecessarily required audience in `JWTClaimsSetAuthenticationManagerResolver`
+- [gh-188](https://github.com/fivetime/spring-addons/issues/188) Fix unnecessarily required audience in `JWTClaimsSetAuthenticationManagerResolver`
 
 ### `7.5.1`
 - make `(Reactive)SpringAddonsOAuth2AuthorizedClientBeans` conditional on `com.c4-soft.springaddons.oidc.client.token-request-params` properties being present
 - fix missing `SpringAddons(Reactive)JwtDecoderFactory` default bean
 
 ### `7.5.0`
-- Create [spring-addons-starter-oidc README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
+- Create [spring-addons-starter-oidc README](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-oidc)
 - Replace `AuthoritiesMappingPropertiesResolver` with `OpenidProviderPropertiesResolver`
-- `OpenidProviderPropertiesResolver` makes multi-tenancy much simpler to implement, including in "dynamic" scenarios (see [spring-addons-starter-oidc README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#1-1-4))
+- `OpenidProviderPropertiesResolver` makes multi-tenancy much simpler to implement, including in "dynamic" scenarios (see [spring-addons-starter-oidc README](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-oidc#1-1-4))
 - Fix names of `(Server)HttpSecurityPostProcessor` (synchronised impl where prefixed with `Server` which it shouldn't and reactive weren't when it should)
   * renamed `HttpSecurityPostProcessor`, `ClientHttpSecurityPostProcessor` and `ResourceServerHttpSecurityPostProcessor` from `reactive` packages to `ReactiveHttpSecurityPostProcessor`, `ClientReactiveHttpSecurityPostProcessor` and `ResourceServerReactiveHttpSecurityPostProcessor`
   * renamed `ServerHttpSecurityPostProcessor`, `ClientHttpSecurityPostProcessor` and `ResourceServerHttpSecurityPostProcessor` from `synchronized` packages to `SynchronizedHttpSecurityPostProcessor`, `ClientSynchronizedHttpSecurityPostProcessor` and `ResourceServerSynchronizedHttpSecurityPostProcessor`
 
 ### `7.4.1`
-- [gh-183](https://github.com/ch4mpy/spring-addons/issues/183) Allow anonymous CORS preflight requests (`OPTIONS` requests to a path configured with CORS)
-- [gh-184](https://github.com/ch4mpy/spring-addons/issues/184) Configuration properties to add parameters to token requests (necessary for instance to add an `audience` when using client-credentials with Auth0)
+- [gh-183](https://github.com/fivetime/spring-addons/issues/183) Allow anonymous CORS preflight requests (`OPTIONS` requests to a path configured with CORS)
+- [gh-184](https://github.com/fivetime/spring-addons/issues/184) Configuration properties to add parameters to token requests (necessary for instance to add an `audience` when using client-credentials with Auth0)
 - Fix Back-Channel Logout activation
 
 ### `7.4.0`
@@ -402,7 +402,7 @@ public class MyOAuth2AuthorizationRequestResolver extends SpringAddonsOAuth2Auth
 - Fix properties documentation issues (`resource-server` instead of `resourceserver`)
 
 ### `7.3.7`
-- [gh-182](https://github.com/ch4mpy/spring-addons/issues/182)doubled path-prefix by SpringAddonsServerOAuth2AuthorizationRequestResolver
+- [gh-182](https://github.com/fivetime/spring-addons/issues/182)doubled path-prefix by SpringAddonsServerOAuth2AuthorizationRequestResolver
 
 ### `7.3.6`
 - Add a `com.c4-soft.springaddons.oidc.client.back-channel-logout.enabled` property to opt-in [Spring Security implementation of Back-Channel Logout](https://docs.spring.io/spring-security/reference/reactive/oauth2/login/logout.html#configure-provider-initiated-oidc-logout). `Customizer.withDefaults()` is used unless you provide one as a bean.
@@ -411,29 +411,29 @@ public class MyOAuth2AuthorizationRequestResolver extends SpringAddonsOAuth2Auth
 - Boot `3.2.2` as transitive dependency
 
 ### `7.3.4`
-- [gh-178](https://github.com/ch4mpy/spring-addons/issues/178) `authorization-request-params` ignored
+- [gh-178](https://github.com/fivetime/spring-addons/issues/178) `authorization-request-params` ignored
 
 ### `7.3.3` 
-- [gh-176](https://github.com/ch4mpy/spring-addons/issues/176) Exception thrown when `post-logout-redirect-path` is null
-- [gh-177](https://github.com/ch4mpy/spring-addons/issues/177) Post-login success & failure URI params and headers on authentication request are ignored in reactive applications
+- [gh-176](https://github.com/fivetime/spring-addons/issues/176) Exception thrown when `post-logout-redirect-path` is null
+- [gh-177](https://github.com/fivetime/spring-addons/issues/177) Post-login success & failure URI params and headers on authentication request are ignored in reactive applications
 
 ### `7.3.2`
-- [gh-174](https://github.com/ch4mpy/spring-addons/issues/174) Fix a regression on request to exchange authorization-code for tokens in servlet applications 
+- [gh-174](https://github.com/fivetime/spring-addons/issues/174) Fix a regression on request to exchange authorization-code for tokens in servlet applications 
 
 ### `7.3.1`
-- [gh-173](https://github.com/ch4mpy/spring-addons/issues/173) prevent NPE. Thanks to [@yennor](https://github.com/yennor) for finding the bug and submitting a fix.
+- [gh-173](https://github.com/fivetime/spring-addons/issues/173) prevent NPE. Thanks to [@yennor](https://github.com/yennor) for finding the bug and submitting a fix.
 
 ### `7.3.0`
-- [gh-166](https://github.com/ch4mpy/spring-addons/issues/166)
+- [gh-166](https://github.com/fivetime/spring-addons/issues/166)
   * `@WithMockJwtAuth` authentication factory uses the authentication converter in the context or a `JwtAuthenticationConverter` if none is found
   * `@WithMockBearerTokenAuthentication` authentication factory uses the `OpaqueTokenAuthenticationConverter` in the context
-- [gh-169](https://github.com/ch4mpy/spring-addons/issues/169) Per request post-login and post-logout URIs. It is now possible to set post-login success / failure URIs as header or request param when initiating `oauth2Login`. This URIs are saved in session and used by the default authentication success / failure handlers. Similarly, when using RP-Initiated Logout, the default logout success handler scans for a post-logout URI in headers and query params to override the default value in properties. The name for these headers, query params and session attributes are exposed by [SpringAddonsOidcClientProperties](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/src/main/java/com/c4_soft/springaddons/security/oidc/starter/properties/SpringAddonsOidcClientProperties.java).
+- [gh-169](https://github.com/fivetime/spring-addons/issues/169) Per request post-login and post-logout URIs. It is now possible to set post-login success / failure URIs as header or request param when initiating `oauth2Login`. This URIs are saved in session and used by the default authentication success / failure handlers. Similarly, when using RP-Initiated Logout, the default logout success handler scans for a post-logout URI in headers and query params to override the default value in properties. The name for these headers, query params and session attributes are exposed by [SpringAddonsOidcClientProperties](https://github.com/fivetime/spring-addons/blob/master/spring-addons-starter-oidc/src/main/java/com/c4_soft/springaddons/security/oidc/starter/properties/SpringAddonsOidcClientProperties.java).
 
 ### `7.1.16`
 - Spring boot `3.2.0` as transient dependency
 
 ### `7.1.15`
-- [gh-155](https://github.com/ch4mpy/spring-addons/issues/155) Configurable HTTP status for responses to authorization_code flow initiation, authorization-code callback and logout. This makes BFF configuration easier for single page and mobile applications. Default OAuth2 response status (`302 Found`) can be overriden with:
+- [gh-155](https://github.com/fivetime/spring-addons/issues/155) Configurable HTTP status for responses to authorization_code flow initiation, authorization-code callback and logout. This makes BFF configuration easier for single page and mobile applications. Default OAuth2 response status (`302 Found`) can be overriden with:
 ```yaml
 com:
   c4-soft:
@@ -452,15 +452,15 @@ A per-request override can be done by setting `X-RESPONSE-STATUS` header with ei
 - update CSRF configuration for SPAs as instructed by spring-security team in https://github.com/spring-projects/spring-security/issues/14125 
 
 ### `7.1.13`
-- [gh-153](https://github.com/ch4mpy/spring-addons/issues/153) have the default opaque tokens introspector accept `Integer`, `Long`, `Instant` and `Date` as value type for `iat` and `exp` claims
+- [gh-153](https://github.com/fivetime/spring-addons/issues/153) have the default opaque tokens introspector accept `Integer`, `Long`, `Instant` and `Date` as value type for `iat` and `exp` claims
 
 ### `7.1.12`
 - Spring boot `3.1.5` as transient dependency
-- [gh-151](https://github.com/ch4mpy/spring-addons/issues/151) scan application context for `authenticationEntryPoint` and `accessDeniedHandler` to auto-configure resource servers (default returns `401` for unauthorized requests instead of `302 redirect to login`).
+- [gh-151](https://github.com/fivetime/spring-addons/issues/151) scan application context for `authenticationEntryPoint` and `accessDeniedHandler` to auto-configure resource servers (default returns `401` for unauthorized requests instead of `302 redirect to login`).
 
 ### `7.1.9`
 - Spring boot `3.1.4` as transient dependency
-- [gh-147](https://github.com/ch4mpy/spring-addons/issues/147) prevent addons test security conf to be auto-configured (complicates integration testing with test containers)
+- [gh-147](https://github.com/fivetime/spring-addons/issues/147) prevent addons test security conf to be auto-configured (complicates integration testing with test containers)
 
 ### `7.1.8`
 - Fix servlet resource server with introspection auto-configuration
@@ -472,12 +472,12 @@ A per-request override can be done by setting `X-RESPONSE-STATUS` header with ei
 - Spring Boot 3.1.3
 
 ### `7.1.4`
-- [gh-144](https://github.com/ch4mpy/spring-addons/issues/144) remove useless dependency on spring-session.
+- [gh-144](https://github.com/fivetime/spring-addons/issues/144) remove useless dependency on spring-session.
 
 ### `7.1.1`
 - Remove Back-Channel Logout experimental support. Follow the [PR on Spring Security](https://github.com/spring-projects/spring-security/pull/12570) for official support.
 - Multi-tenancy support on OAuth2 clients is now optional and disabled by default. Set `com.c4-soft.springaddons.oidc.client.multi-tenancy-enabled=true` to keep it activated.
-- [gh-140](https://github.com/ch4mpy/spring-addons/issues/140): use AOP instead of custom authorized-client repositories to support multi-tenancy on OAuth2 clients. That way, any configured authorized-client repository is instrumented (no need to proxy or extend spring-addons one).
+- [gh-140](https://github.com/fivetime/spring-addons/issues/140): use AOP instead of custom authorized-client repositories to support multi-tenancy on OAuth2 clients. That way, any configured authorized-client repository is instrumented (no need to proxy or extend spring-addons one).
 
 ### `7.0.8`
 - client `SecurityFilterChain` with `LOWEST_PRIORITY - 1` (instead of `HIGHEST_PRIORITY + 1`)
@@ -494,7 +494,7 @@ A per-request override can be done by setting `X-RESPONSE-STATUS` header with ei
 - Fix the condition to add a filter inserting CSRF protection cookie to responses
 
 ### `7.0.0`
-See the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.0.0-migration-guide.md)
+See the [migration guide](https://github.com/fivetime/spring-addons/blob/master/7.0.0-migration-guide.md)
 - merge all 6 starters into a single one
 - reduce test libs count to 2: one with just annotations and another to ease testing of apps using the starter
 
@@ -518,10 +518,10 @@ See the [migration guide](https://github.com/ch4mpy/spring-addons/blob/master/7.
 - remove the archetypes
 
 ### `6.1.16`
-- [gh-133](https://github.com/ch4mpy/spring-addons/issues/133) Add a property to auto-configure an `audience` JWT validator (if present, the `aud` claim in the token will be checked to contain the URI provided in the conf)
+- [gh-133](https://github.com/fivetime/spring-addons/issues/133) Add a property to auto-configure an `audience` JWT validator (if present, the `aud` claim in the token will be checked to contain the URI provided in the conf)
 
 ### `6.1.15`
-- [gh-129](https://github.com/ch4mpy/spring-addons/issues/129) Auto-configure (with application properties) additional parameters for authorization-code request. This allows, for instance, to send an `audience` as required by Auth0. Additional parameters are defined for each client registration. In the following sample, `client-registration` `a` and `b` references an existing entries in spring.security.oauth2.client.registration:
+- [gh-129](https://github.com/fivetime/spring-addons/issues/129) Auto-configure (with application properties) additional parameters for authorization-code request. This allows, for instance, to send an `audience` as required by Auth0. Additional parameters are defined for each client registration. In the following sample, `client-registration` `a` and `b` references an existing entries in spring.security.oauth2.client.registration:
 ```yaml
 com:
   c4-soft:
@@ -540,7 +540,7 @@ com:
 ```
 
 ### `6.1.14`
-- [gh-128](https://github.com/ch4mpy/spring-addons/issues/128) add `@ClasspathClaims` to load claims from a JSON file in the classpath (test resources for instance).
+- [gh-128](https://github.com/fivetime/spring-addons/issues/128) add `@ClasspathClaims` to load claims from a JSON file in the classpath (test resources for instance).
 ```java
 @Test
 @WithMockJwtAuth(
@@ -552,7 +552,7 @@ void givenUserIsAuthenticatedWithJsonClaims_whenGetClaims_thenOk() throws Except
   api.get("/greet").andExpect(status().isOk()).andExpect(content().string("Hello Ch4mp! You are granted with [ROLE_AUTHORIZED_PERSONNEL]."));
 }
 ```
-- [gh-127](https://github.com/ch4mpy/spring-addons/issues/127) add a `json` property to @OpenIdClaims to define all claims with a JSON string
+- [gh-127](https://github.com/fivetime/spring-addons/issues/127) add a `json` property to @OpenIdClaims to define all claims with a JSON string
 ```java
 @WithMockJwtAuth(
 authorities = { "ROLE_AUTHORIZED_PERSONNEL" },
@@ -569,10 +569,10 @@ claims = @OpenIdClaims(
 ```
 
 ### `6.1.13`
-- [gh-125](https://github.com/ch4mpy/spring-addons/issues/125) Split claims used as `GrantedAuthority` source on comma and space (for instance, `scope` claim is usually a single string with comma separated scopes).
+- [gh-125](https://github.com/fivetime/spring-addons/issues/125) Split claims used as `GrantedAuthority` source on comma and space (for instance, `scope` claim is usually a single string with comma separated scopes).
 
 ### `6.1.12`
-- [gh-122](https://github.com/ch4mpy/spring-addons/issues/122) Support for parametrized OAuth2 Authentications in `@ParameterizedTest`. In the following sample, **mind the `@JwtAuthenticationSource`** (decoring test) **and `@ParameterizedJwtAuth`** (decoring test method parameter). The first annotation defines the different authentication instances, the second inserts the one for the current test in the security context and provides it as test method parameter:
+- [gh-122](https://github.com/fivetime/spring-addons/issues/122) Support for parametrized OAuth2 Authentications in `@ParameterizedTest`. In the following sample, **mind the `@JwtAuthenticationSource`** (decoring test) **and `@ParameterizedJwtAuth`** (decoring test method parameter). The first annotation defines the different authentication instances, the second inserts the one for the current test in the security context and provides it as test method parameter:
 ```java
 @ParameterizedTest
 @JwtAuthenticationSource({ @WithMockJwtAuth("NICE"), @WithMockJwtAuth("VERY_NICE") })
@@ -595,7 +595,7 @@ void givenUserIsGrantedWithAnyNiceAuthority_whenGetRestricted_thenOk(@Parameteri
 - Spring Boot 3.0.7
 
 ### `6.1.9`
-- [gh-112](https://github.com/ch4mpy/spring-addons/issues/112) fix CSRF token exposed to Javascript in servlets applications. Thanks to @giovannicandido for spotting and fixing this.
+- [gh-112](https://github.com/fivetime/spring-addons/issues/112) fix CSRF token exposed to Javascript in servlets applications. Thanks to @giovannicandido for spotting and fixing this.
 
 ### `6.1.8`
 - Spring Boot 3.0.6
@@ -650,9 +650,9 @@ void givenUserIsGrantedWithAnyNiceAuthority_whenGetRestricted_thenOk(@Parameteri
 - add a BFF tutorial
 
 ### `6.1.1`
-- add [spring-addons-webmvc-client](https://github.com/ch4mpy/spring-addons/tree/master/webmvc/spring-addons-webmvc-client)
-- add [spring-addons-webflux-client](https://github.com/ch4mpy/spring-addons/tree/master/webflux/spring-addons-webflux-client)
-- in both client starters, add a logout handler for OP with RP-Initiated logout implementations which do not comply with OIDC standard. This handler is configurable from properties (logout end-point and post-logout URIs). See [`resource-server_with_ui` tutorial](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) for details.
+- add [spring-addons-webmvc-client](https://github.com/fivetime/spring-addons/tree/master/webmvc/spring-addons-webmvc-client)
+- add [spring-addons-webflux-client](https://github.com/fivetime/spring-addons/tree/master/webflux/spring-addons-webflux-client)
+- in both client starters, add a logout handler for OP with RP-Initiated logout implementations which do not comply with OIDC standard. This handler is configurable from properties (logout end-point and post-logout URIs). See [`resource-server_with_ui` tutorial](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials/resource-server_with_ui) for details.
 
 ### `6.1.0`
 - **breaking change in properties:** authorities mapping is now configured per claim JSON path (instead of per issuer). This enables to use different prefix (and case) for different claims (for instance `SCOPE_` for `scope` claim and `ROLE_` for `realm_access.roles` one). As a consequence, `com.c4-soft.springaddons.security.issuers[].authorities.claims[]` is replaced with `com.c4-soft.springaddons.security.issuers[].authorities[].path`.Also, `prefix` as well as `case` are put at the same level as (JSON) `path`.
@@ -694,7 +694,7 @@ com:
 - Add a `username-clame` configuration property to define, per issuer, from which claim of the access token should be retrieved the username (what is returned by `Authentication::getName`). Default is subject for backward compatibility
 
 ### `6.0.15`
-- [gh-100](https://github.com/ch4mpy/spring-addons/issues/100) prevent a NPE in reactive resource-server using JWT spring-addons starter when the issuer in an access token is not listed in conf. All credits go to [lArtiquel](https://github.com/lArtiquel) who spotted the bug and submitted the fix.
+- [gh-100](https://github.com/fivetime/spring-addons/issues/100) prevent a NPE in reactive resource-server using JWT spring-addons starter when the issuer in an access token is not listed in conf. All credits go to [lArtiquel](https://github.com/lArtiquel) who spotted the bug and submitted the fix.
 
 ### `6.0.13`
 - create `ServerHttpRequestSupport` and `HttpServletRequestSupport` to help statically access to the request in current context (usage in authentication converters for instance
@@ -705,11 +705,11 @@ com:
 - default authorities collection in tests annotations, `MockMvc` post-processors and `WebTestClient` mutators is set to empty array (instead of `{ "ROLE_USER" }`)
 
 ### `6.0.11`
-- [gh-86](https://github.com/ch4mpy/spring-addons/issues/86) `OAuthentication::setDetails` [should not throw](https://github.com/spring-projects/spring-security/issues/11822) until spring-security 6.1 is released
-- [gh-87](https://github.com/ch4mpy/spring-addons/issues/87) spring-addons JWT starters should start even if `spring.security.oauth2.resourceserver.jwt.issuer-uri` is set in configuration properties
+- [gh-86](https://github.com/fivetime/spring-addons/issues/86) `OAuthentication::setDetails` [should not throw](https://github.com/spring-projects/spring-security/issues/11822) until spring-security 6.1 is released
+- [gh-87](https://github.com/fivetime/spring-addons/issues/87) spring-addons JWT starters should start even if `spring.security.oauth2.resourceserver.jwt.issuer-uri` is set in configuration properties
 
 ### `6.0.10`
-- [gh-83](https://github.com/ch4mpy/spring-addons/issues/83) do not force traffic to http when SSL is not enabled (just force https when SSL is enabled)
+- [gh-83](https://github.com/fivetime/spring-addons/issues/83) do not force traffic to http when SSL is not enabled (just force https when SSL is enabled)
 
 ### `6.0.9`
 - Make OAuthentication immutable
@@ -718,7 +718,7 @@ com:
 - release with spring-boot 3.0.0 GA as transitive dependency
 
 ### `6.0.1`
-- [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) for all combinations of:
+- [samples](https://github.com/fivetime/spring-addons/tree/master/samples) for all combinations of:
   * webmvc / webflux
   * JWT decoder / access token introspection
   * `OAuthentication<OpenidClaimSet>` / Spring default `Authentication` implementation (`JwtAuthenticationToken` for JWT decoder or `BearerTokenAuthentication` for token introspection)
@@ -732,7 +732,7 @@ com:
 This branch is not maintained anymore. Only versions compatible with Spring 6.1.x (Boot 3.1.x) and JDK >= 17 are maintained.
 
 ### `5.4.2`
-- [gh-100](https://github.com/ch4mpy/spring-addons/issues/100) prevent a NPE in reactive resource-server using JWT spring-addons starter when the issuer in an access token is not listed in conf. All credits go to [lArtiquel](https://github.com/lArtiquel) who spotted the bug and submitted the fix.
+- [gh-100](https://github.com/fivetime/spring-addons/issues/100) prevent a NPE in reactive resource-server using JWT spring-addons starter when the issuer in an access token is not listed in conf. All credits go to [lArtiquel](https://github.com/lArtiquel) who spotted the bug and submitted the fix.
 
 ### `5.4.0`
 - Use a single bean name for
@@ -776,10 +776,10 @@ Rename `com.c4-soft.springaddons.security.token-issuers` configuration propertie
 CSRF enabled by default, using `CookieCsrfTokenRepository` if session management is "stateless".
 
 ### `4.4.4`
-[gh-53 GenericMethodSecurityExpressionHandler should accept expression root suppliers for many authentication type](https://github.com/ch4mpy/spring-addons/issues/53)
+[gh-53 GenericMethodSecurityExpressionHandler should accept expression root suppliers for many authentication type](https://github.com/fivetime/spring-addons/issues/53)
 
 ### `4.4.2`
-add [reCAPTCHA validation spring-boot starter](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starters-recaptcha)
+add [reCAPTCHA validation spring-boot starter](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starters-recaptcha)
 
 ### `4.4.1`
 rename `@WithMockOidcAuth` to shorter and more expressive `@OpenId`: it populates test security context with an OAuth2 `Àuthentication` containing an OpenID claim-set
@@ -804,17 +804,17 @@ com.c4-soft.springaddons.security.issuers[0].authorities.claims=realm_access.rol
 where `caze` is one of `unchanged`, `upper` or `lower`
 
 ### `4.3.0`
-- [gh-50](https://github.com/ch4mpy/spring-addons/issues/50): One entry per authorization-server for authorities mapping (see samples `application.properties` files for new configuration structure).
-- [gh-51](https://github.com/ch4mpy/spring-addons/issues/51): Group archetypes, webmvc and webflux modules.
+- [gh-50](https://github.com/fivetime/spring-addons/issues/50): One entry per authorization-server for authorities mapping (see samples `application.properties` files for new configuration structure).
+- [gh-51](https://github.com/fivetime/spring-addons/issues/51): Group archetypes, webmvc and webflux modules.
 
 ### `4.2.1`
-- [gh-49](https://github.com/ch4mpy/spring-addons/issues/49): Samples in dedicated modules. All samples are moved from libs tests to [`samples`](https://github.com/ch4mpy/spring-addons/tree/master/samples) module, with one sub-module per sample.
+- [gh-49](https://github.com/fivetime/spring-addons/issues/49): Samples in dedicated modules. All samples are moved from libs tests to [`samples`](https://github.com/fivetime/spring-addons/tree/master/samples) module, with one sub-module per sample.
 
 ### `4.2.0`
 Cleanup and prepare for spring-boot 3:
-- [gh-46](https://github.com/ch4mpy/spring-addons/issues/46): split webmvc & webflux content from `spring-addons-oauth2` 
-- [gh-47](https://github.com/ch4mpy/spring-addons/issues/47): provide `SecurityFilterChain` bean instead of extending `WebSecurityConfigurerAdapter`
-- [gh-48](https://github.com/ch4mpy/spring-addons/issues/48): make use of spring-boot `@AutoConfiguration`
+- [gh-46](https://github.com/fivetime/spring-addons/issues/46): split webmvc & webflux content from `spring-addons-oauth2` 
+- [gh-47](https://github.com/fivetime/spring-addons/issues/47): provide `SecurityFilterChain` bean instead of extending `WebSecurityConfigurerAdapter`
+- [gh-48](https://github.com/fivetime/spring-addons/issues/48): make use of spring-boot `@AutoConfiguration`
 
 ### `4.1.5`
 - Replace multiple JWT issuers JwtDecoder (from 4.1.4) with `AuthenticationManagerResolver` @Beans 
@@ -833,10 +833,10 @@ Cleanup and prepare for spring-boot 3:
 - Create `jdk1.8` and `jdk11` branches
 
 ### `3.1.16`
-- Add [spring-addons-archetypes-webmvc-multimodule](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-archetypes-webmvc-multimodule) to boostrap native-ready Spring REST API with webmvc, JPA, OpenAPI and OpenID security.
+- Add [spring-addons-archetypes-webmvc-multimodule](https://github.com/fivetime/spring-addons/blob/master/spring-addons-archetypes-webmvc-multimodule) to boostrap native-ready Spring REST API with webmvc, JPA, OpenAPI and OpenID security.
 
 ### `3.1.13`
-- Add a [sample](https://github.com/ch4mpy/spring-addons/blob/master/custom-oidc-authentication-impl.MD) with `OpenidClaimSet` specialisation (parse private claims in addition to authorities).
+- Add a [sample](https://github.com/fivetime/spring-addons/blob/master/custom-oidc-authentication-impl.MD) with `OpenidClaimSet` specialisation (parse private claims in addition to authorities).
 
 ### `3.1.12`
 - Improve `OidcReactiveApiSecurityConfig` and `OidcServletApiSecurityConfig` usability: ease security beans replacement (including authorities and authentication converter for use cases where OAuthentication is not enough)
@@ -849,7 +849,7 @@ Cleanup and prepare for spring-boot 3:
 - More CORS and authorities mapping configuration in `SecurityProperties`
 
 ### `3.1.8`
-- Fix missing JTI claim mapping from `@OpenIdClaims` ([gh-35](https://github.com/ch4mpy/spring-addons/issues/35)).
+- Fix missing JTI claim mapping from `@OpenIdClaims` ([gh-35](https://github.com/fivetime/spring-addons/issues/35)).
 
 ### `3.1.7`
 - Add `AbstractOidcReactiveApiSecurityConfig` to `spring-addons-oauth2`. It provides with reasonable default WebSecurityConfig for a reactive (weblux) based API secured with OAuthentication.
@@ -858,7 +858,7 @@ Cleanup and prepare for spring-boot 3:
 - Add `AbstractOidcServletApiSecurityConfig` to `spring-addons-oauth2`. It provides with reasonable default WebSecurityConfig for a servlet based API secured with OAuthentication.
 
 ### `3.1.4`
-- lombok with provided scope ([gh-31](https://github.com/ch4mpy/spring-addons/issues/31))
+- lombok with provided scope ([gh-31](https://github.com/fivetime/spring-addons/issues/31))
 
 ### `3.1.3`
 - spring-boot 2.6.1
@@ -895,10 +895,10 @@ Cleanup and prepare for spring-boot 3:
 - introduce `@JsonObjectClaim` and `@JsonArrayClaim` to configure complex private claims. Sample: `@WithMockKeycloakAuth(otherClaims = @ClaimSet(jsonObjectClaims = @JsonObjectClaim(name = "foo", value = "{\"bar\":\"bad\", \"nested\":{\"deep\":\"her\"}, \"arr\":[1,2,3]}")))` or `@WithMockOidcId(privateClaims = @JsonObjectClaim(name = "foo", value = "{\"bar\":\"bad\", \"nested\":{\"deep\":\"her\"}, \"arr\":[1,2,3]}"))`
 
 ### `2.4.1`
-- [issue #14](https://github.com/ch4mpy/spring-addons/issues/14) added jti and nbf (from JWT spec) to @IdTokenClaims (an ID token is a JWT)
-- [issue #14](https://github.com/ch4mpy/spring-addons/issues/14) added session_state to @IdTokenClaims as per https://openid.net/specs/openid-connect-session-1_0.html#CreatingUpdatingSessions
-- [issue #14](https://github.com/ch4mpy/spring-addons/issues/14) rename `privateClaims` to `otherClaims` in `@WithMockKeycloakAuth`
-- [issue #15](https://github.com/ch4mpy/spring-addons/issues/15) `GrantedAuthoritiesMapper` is now optional in test config. Defaulted to `NullAuthoritiesMapper`
+- [issue #14](https://github.com/fivetime/spring-addons/issues/14) added jti and nbf (from JWT spec) to @IdTokenClaims (an ID token is a JWT)
+- [issue #14](https://github.com/fivetime/spring-addons/issues/14) added session_state to @IdTokenClaims as per https://openid.net/specs/openid-connect-session-1_0.html#CreatingUpdatingSessions
+- [issue #14](https://github.com/fivetime/spring-addons/issues/14) rename `privateClaims` to `otherClaims` in `@WithMockKeycloakAuth`
+- [issue #15](https://github.com/fivetime/spring-addons/issues/15) `GrantedAuthoritiesMapper` is now optional in test config. Defaulted to `NullAuthoritiesMapper`
 
 ### `2.4.0`
 - rename `ServletKeycloakAuthUnitTestingSupport::keycloakAuthenticationToken()` to `authentication()` to improve API fluidity (`api.with(keycloak.authentication()).get(...)`)
@@ -914,7 +914,7 @@ Cleanup and prepare for spring-boot 3:
 - support for private claims in `@WithMockOidcId` and `@WithMockKeycloakAuth` (claims with values of type `int`, `long`, `String` and `String[]` only)
 - add missing subject claim in Keycloak access and ID tokens
 - compose `@WithAccessToken` with `@WithKeycloakIDToken` instead of repeating properties (`AccessToken` extends `IDToken`)
-- add advanced `@WithMockKeycloakAuth` sample usage in [`spring-addons-oauth2-test` README](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test)
+- add advanced `@WithMockKeycloakAuth` sample usage in [`spring-addons-oauth2-test` README](https://github.com/fivetime/spring-addons/tree/master/spring-addons-oauth2-test)
 
 ### `2.1.0`
 - fix Keycloak typo (was wrongly spelled Keycloack at many places)

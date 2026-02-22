@@ -17,10 +17,10 @@ Issuer URI 的格式应为 `${keycloak-host}/realms/{realm-id}`。
 本仓库示例数量较多，所有示例均纳入 CI 以确保代码可编译且测试全部通过。遗憾的是，此 README 不会随源码变更自动更新。请将其作为理解源码的参考指引。**如需复制代码，请务必从源码中复制，而非从此 README 中复制。**
 
 ## 1. 前置条件
-假设已完成[教程主 README 的前置条件章节](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#prerequisites)，并已准备好至少 1 个 OIDC Provider（2 个更好），且已配置带有 authorization-code 流程的 client ID 和 secret。
+假设已完成[教程主 README 的前置条件章节](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#prerequisites)，并已准备好至少 1 个 OIDC Provider（2 个更好），且已配置带有 authorization-code 流程的 client ID 和 secret。
 
 ## 2. 项目初始化
-本教程在 [`resource-server_with_oauthentication` 教程](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)的基础上继续。请确保该项目已正常运行后再开始本教程。
+本教程在 [`resource-server_with_oauthentication` 教程](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication)的基础上继续。请确保该项目已正常运行后再开始本教程。
 
 ## 3. Web Security 配置
 如 [`spring-addons-starter-oidc` README]() 中所述，我们只需要：
@@ -76,10 +76,10 @@ public class WebSecurityConfig {
 注意，我们也可以通过模式匹配实现更严格的校验，但这个实现对于演示目的已经足够。
 
 ## 5. 示例 `@RestController`
-无需改动，直接沿用 [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) 中的 controller 即可。
+无需改动，直接沿用 [`resource-server_with_oauthentication`](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) 中的 controller 即可。
 
 ## 5. 单元测试
-无需改动，直接沿用 [`resource-server_with_oauthentication`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) 中的测试即可。
+无需改动，直接沿用 [`resource-server_with_oauthentication`](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials/resource-server_with_oauthentication) 中的测试即可。
 
 ## 6. 总结
 Et voilà！现在我们的 API 可以接受 Keycloak 实例上任意 realm 签发的 access token 了（同时也领略了 `spring-addons-starter-oidc` 的灵活性）。

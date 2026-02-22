@@ -15,7 +15,7 @@
 
 Baeldung 上发布了一篇[介绍本库中 OAuth2 测试注解用法的文章](https://www.baeldung.com/spring-oauth-testing-access-control)。
 
-结合所有 [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) 和 [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) 源码（包含大量单元测试和集成测试），应该足以帮你快速上手。
+结合所有 [samples](https://github.com/fivetime/spring-addons/tree/master/samples) 和 [tutorials](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials) 源码（包含大量单元测试和集成测试），应该足以帮你快速上手。
 
 也可以参考下方的[示例](#sample)章节。
 

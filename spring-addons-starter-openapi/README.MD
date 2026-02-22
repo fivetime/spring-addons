@@ -16,7 +16,7 @@
 ## 警告：本 starter 目前仅支持 servlet 应用 :/
 响应式应用的大部分工作已经完成，但本仓库的维护者尚未找到同步 `HttpMessageWriter` 的方法。
 
-如果你找到了让 `SpringReactiveEnumModelConverter#toWrittingExtractor` 正常工作的方法（[修复其中的 `FIXME`](https://github.com/ch4mpy/spring-addons/blob/dfbe20387ae7c423c103b6e5b6d853087473a537/spring-addons-starter-openapi/src/main/java/com/c4_soft/springaddons/openapi/SpringReactiveEnumModelConverter.java#L158)），欢迎提交 PR ;)
+如果你找到了让 `SpringReactiveEnumModelConverter#toWrittingExtractor` 正常工作的方法（[修复其中的 `FIXME`](https://github.com/fivetime/spring-addons/blob/dfbe20387ae7c423c103b6e5b6d853087473a537/spring-addons-starter-openapi/src/main/java/com/c4_soft/springaddons/openapi/SpringReactiveEnumModelConverter.java#L158)），欢迎提交 PR ;)
 
 要测试你的实现，可以重新启用：
 - `src/main/java/com/c4_soft/springaddons/openapi/SpringAddonsOpenapiAutoConfiguration.java` 中的 `springReactiveEnumModelConverter` bean

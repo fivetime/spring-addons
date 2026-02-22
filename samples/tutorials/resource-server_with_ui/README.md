@@ -15,7 +15,7 @@ UI 通过 session cookie 保护，REST 端点通过 JWT 保护，因此 Thymelea
 
 不同的 provider 在不同的 Spring profile 中配置。如果我们选择在主 profile 中配置多个 `provider`，并为每个 provider 分别创建带有 `authorization_code` 的 `registration`，**那么用户在切换 `registration` 登录时必须先登出**。这是因为 Spring Security 的 security context 只能包含一个 `Authentication`，而在 `oauth2Login` 场景下，该 `Authentication` 绑定到特定的 `registration`。
 
-运行本示例前，请确保你的环境满足[教程前置条件](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites)。
+运行本示例前，请确保你的环境满足[教程前置条件](https://github.com/fivetime/spring-addons/blob/master/samples/tutorials/README.md#prerequisites)。
 
 ## 2. 场景详情
 我们将实现一个包含以下功能的 Spring 后端：

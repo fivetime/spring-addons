@@ -6,7 +6,7 @@
 ## 1. 概述
 在本教程中，我们假设除了 `Authorization` 请求头中的 JWT **access token** 之外，OAuth2 client 还会在 `X-ID-Token` 请求头中附带一个 JWT **ID token**。
 
-请确保你的环境满足[教程前置条件](https://github.com/ch4mpy/spring-addons/blob/master/samples/tutorials/README.md#prerequisites)。
+请确保你的环境满足[教程前置条件](https://github.com/fivetime/spring-addons/blob/master/samples/tutorials/README.md#prerequisites)。
 
 ## 2. 项目初始化
 借助 https://start.spring.io/ 创建一个 Spring Boot 3 项目，需要以下依赖：
@@ -31,10 +31,10 @@
 </dependency>
 ```
 
-如果出于某种原因不想使用 `spring-addons-starter-oidc`，可以参考 [`servlet-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/servlet-resource-server) 或 [`reactive-resource-server`](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials/reactive-resource-server)，了解仅使用 `spring-boot-starter-oauth2-resource-server` 的基本配置方式。剧透：那样会繁琐得多，也更容易出错。
+如果出于某种原因不想使用 `spring-addons-starter-oidc`，可以参考 [`servlet-resource-server`](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials/servlet-resource-server) 或 [`reactive-resource-server`](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials/reactive-resource-server)，了解仅使用 `spring-boot-starter-oauth2-resource-server` 的基本配置方式。剧透：那样会繁琐得多，也更容易出错。
 
 ## 3. Web Security 配置
-本配置将使用非常便捷的 [`HttpServletRequestSupport`](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/src/main/java/com/c4_soft/springaddons/security/oidc/starter/synchronised/HttpServletRequestSupport.java)，它提供了访问当前请求（在本例中为其请求头）的工具方法。如果编写的是 WebFlux 应用，则应使用其响应式对应版本：[`ServerHttpRequestSupport`](https://github.com/ch4mpy/spring-addons/blob/master/spring-addons-starter-oidc/src/main/java/com/c4_soft/springaddons/security/oidc/starter/reactive/ServerHttpRequestSupport.java)。如果不使用 `spring-addons-starter-oidc`，可能需要从上述工具类中复制部分代码。
+本配置将使用非常便捷的 [`HttpServletRequestSupport`](https://github.com/fivetime/spring-addons/blob/master/spring-addons-starter-oidc/src/main/java/com/c4_soft/springaddons/security/oidc/starter/synchronised/HttpServletRequestSupport.java)，它提供了访问当前请求（在本例中为其请求头）的工具方法。如果编写的是 WebFlux 应用，则应使用其响应式对应版本：[`ServerHttpRequestSupport`](https://github.com/fivetime/spring-addons/blob/master/spring-addons-starter-oidc/src/main/java/com/c4_soft/springaddons/security/oidc/starter/reactive/ServerHttpRequestSupport.java)。如果不使用 `spring-addons-starter-oidc`，可能需要从上述工具类中复制部分代码。
 
 `spring-oauth2-addons` 提供了适用于 REST API 项目的 web security 配置 `@AutoConfiguration`。我们只需要：
 - 添加 `@EnableMethodSecurity` 以在组件方法上启用 `@PreAuthorize`

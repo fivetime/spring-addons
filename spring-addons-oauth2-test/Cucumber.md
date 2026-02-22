@@ -7,7 +7,7 @@ The reason is Cucumber does not support spring `WithSecurityContextTestExecution
 
 As a consequence, test security context setup must be done manually in `@Given` steps. The only help this lib can bring is with the `OpenidClaimSetBuilder` builders it exposes.
 
-## Minimal sample adapted from [gh-29](https://github.com/ch4mpy/spring-addons/issues/29)
+## Minimal sample adapted from [gh-29](https://github.com/fivetime/spring-addons/issues/29)
 
 Gherkin feature:
 ```

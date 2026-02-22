@@ -1,6 +1,6 @@
 # spring-addons-oauth2 示例
 
-建议先从 [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) 入手，再克隆本仓库运行或修改示例。
+建议先从 [tutorials](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials) 入手，再克隆本仓库运行或修改示例。
 
 以下场景的示例均包含**配置、单元测试和集成测试**：
 - servlet（webmvc）/ 响应式（webflux）应用

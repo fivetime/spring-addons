@@ -5,18 +5,18 @@
 
 `9.0.5-M1` 适配 Spring Boot `4.0.0-M1`（Security `7.0.x` 和 Cloud `2025.1.x`）。在 Boot `4.0.0` 正式发布之前，源码在 boot-4 分支上维护。
 
-[`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) 在涉及 OAuth2、自签名 SSL 证书或 HTTP 代理的服务间调用场景中是一个颠覆性的工具，值得一试！
+[`spring-addons-starter-rest`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-rest) 在涉及 OAuth2、自签名 SSL 证书或 HTTP 代理的服务间调用场景中是一个颠覆性的工具，值得一试！
 
 ## Spring 后端所需的 OAuth2 基础知识
 
-本仓库提供了[使用 OAuth2 / OIDC 配置 Spring RESTful 后端的教程](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#securing-spring-applications-with-oauth2)。**切记，与其花几周时间反复试错，不如花 15 分钟好好读一遍 README。** 因此，在开始实现之前，请务必仔细阅读 [_OAuth2 essentials_](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) 章节，以及 [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc#spring-addons-starter-oidc) 和 [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest#auto-configure-restclient-or-webclient-beans) 的 README。
+本仓库提供了[使用 OAuth2 / OIDC 配置 Spring RESTful 后端的教程](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#securing-spring-applications-with-oauth2)。**切记，与其花几周时间反复试错，不如花 15 分钟好好读一遍 README。** 因此，在开始实现之前，请务必仔细阅读 [_OAuth2 essentials_](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#1-oauth2-essentials) 章节，以及 [`spring-addons-starter-oidc`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-oidc#spring-addons-starter-oidc) 和 [`spring-addons-starter-rest`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-rest#auto-configure-restclient-or-webclient-beans) 的 README。
 
 本仓库中有三篇教程已迁移至 Baeldung：
 - [Getting started with Keycloak & Spring Boot](https://www.baeldung.com/spring-boot-keycloak)
 - [Creating an OAuth2 BFF with `spring-cloud-gateway` and consuming it with Single-Page Applications](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
 - [Testing access control with mocked OAuth2 authentications](https://www.baeldung.com/spring-oauth-testing-access-control)
 
-## [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc)
+## [`spring-addons-starter-oidc`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-oidc)
 
 仅使用 `spring-boot-starter-oauth2-client` 或 `spring-boot-starter-resource-server` 时，我们几乎总是需要自己编写 `Security(Web)FilterChain`，这不仅需要扎实的安全背景知识和对 Spring Security 内部机制的了解，而且代码往往十分冗长。
 
@@ -41,7 +41,7 @@ resource server 的自动配置包括：
 - CORS 配置
 - 使用 CORS 配置中的路径匹配器允许匿名预检请求
 
-## [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest)
+## [`spring-addons-starter-rest`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-rest)
 
 在 OpenAPI 规范可以从 REST API 源码自动生成、消费这些 API 的客户端代码又可以从规范自动生成的今天，服务间通信的主要挑战在于 REST client 的配置。
 
@@ -91,7 +91,7 @@ com:
 
 为此，`spring-security-test` 提供了 `MockMvc` 请求后处理器和 `WebTestClient` mutator，但它们只能在请求上下文中工作，因此仅适用于 controller 的测试。**要测试任意类型的 `@Component`**（当然包括 `@Controller`，也包括 `@Service` 和 `@Repository`），只有两种选择：
 - 自行构建测试 security context，并用 stub / mock 的 authentication 填充它 :cry:
-- **使用注解**来代劳（这正是 [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) 大显身手的地方）:smiley:
+- **使用注解**来代劳（这正是 [spring-addons-oauth2-test](https://github.com/fivetime/spring-addons/tree/master/spring-addons-oauth2-test) 大显身手的地方）:smiley:
 
 此外，`@MockJwt` 与 `spring-security-test` 中注解的一个显著区别在于：**`spring-security-test` 会忽略 security 配置中定义的 authentication converter :sob:**。为了理解其影响，我们来看一下在使用 JWT decoder 的 resource server 中构建 security context 的流程：
 1. JWT Bearer 字符串被 `JwtDecoder` 解码、验证，并转换为 `org.springframework.security.oauth2.jwt.Jwt`
@@ -101,18 +101,18 @@ com:
 使用 `@WithJwt` 时，只有第 1 步被 mock。系统会使用测试资源中的 JSON payload 构建一个 stub `Jwt`（非 JWT），并将其传给 authentication converter。而使用 `spring-security-test` 的后处理器和 mutator 时，工厂会跳过到第 3 步，自行构建 stub `Authentication`，并用测试代码中提供的内容设置其属性。因此，authorities 转换逻辑只有在使用 `@WithJwt` 时才会被执行。同样，自定义的 `Authentication` 实现类只有在工厂调用了 authentication converter 时才会在测试中被使用，因此使用 `@WithJwt` 时有效，使用 `.jwt()` 后处理器时则无效。
 
 相关资源：
-- [spring-addons-oauth2-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) 包含测试注解，其 README 中有使用说明
-- [spring-addons-starter-oidc-test](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc-test) 适用于使用 `spring-addons-starter-oidc` 的项目
+- [spring-addons-oauth2-test](https://github.com/fivetime/spring-addons/tree/master/spring-addons-oauth2-test) 包含测试注解，其 README 中有使用说明
+- [spring-addons-starter-oidc-test](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-oidc-test) 适用于使用 `spring-addons-starter-oidc` 的项目
 - [Baeldung article](https://www.baeldung.com/spring-oauth-testing-access-control)
-- [samples](https://github.com/ch4mpy/spring-addons/tree/master/samples) 和 [tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials) 源码（包含大量单元测试和集成测试）
+- [samples](https://github.com/fivetime/spring-addons/tree/master/samples) 和 [tutorials](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials) 源码（包含大量单元测试和集成测试）
 
 ## 相关链接
-- [`spring-addons-starter-oidc`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc) 将 OAuth2 client 和 resource server 安全自动配置提升到新高度的 Spring Boot starter
-- [`spring-addons-oauth2-test`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-oauth2-test) 用于向测试 security context 填充 OAuth2 authentication 实例的注解
-- [`spring-addons-starter-oidc-test`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-oidc-test) 简化使用 `spring-addons-starter-oidc` 的应用的单元测试
-- [`spring-addons-starter-rest`](https://github.com/ch4mpy/spring-addons/tree/master/spring-addons-starter-rest) 针对 `RestClient`、`WebClient` 和 `@HttpExchange` 代理的实验性自动配置（base-URL、Basic 和 OAuth2 Bearer 认证）
+- [`spring-addons-starter-oidc`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-oidc) 将 OAuth2 client 和 resource server 安全自动配置提升到新高度的 Spring Boot starter
+- [`spring-addons-oauth2-test`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-oauth2-test) 用于向测试 security context 填充 OAuth2 authentication 实例的注解
+- [`spring-addons-starter-oidc-test`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-oidc-test) 简化使用 `spring-addons-starter-oidc` 的应用的单元测试
+- [`spring-addons-starter-rest`](https://github.com/fivetime/spring-addons/tree/master/spring-addons-starter-rest) 针对 `RestClient`、`WebClient` 和 `@HttpExchange` 代理的实验性自动配置（base-URL、Basic 和 OAuth2 Bearer 认证）
 - [Getting started with Keycloak & Spring Boot](https://www.baeldung.com/spring-boot-keycloak)
-- [OAuth2 security configuration tutorials](https://github.com/ch4mpy/spring-addons/tree/master/samples/tutorials#securing-spring-applications-with-oauth2)（含/不含 `spring-addons-starter-oidc` 两种版本）
+- [OAuth2 security configuration tutorials](https://github.com/fivetime/spring-addons/tree/master/samples/tutorials#securing-spring-applications-with-oauth2)（含/不含 `spring-addons-starter-oidc` 两种版本）
 - [OAuth2 BFF tutorial](https://www.baeldung.com/spring-cloud-gateway-bff-oauth2)
-- [Release Notes](https://github.com/ch4mpy/spring-addons/tree/master/release-notes.md)
-- [Maven-Central 备忘](https://github.com/ch4mpy/spring-addons/tree/master/maven-central.md)
+- [Release Notes](https://github.com/fivetime/spring-addons/tree/master/release-notes.md)
+- [Maven-Central 备忘](https://github.com/fivetime/spring-addons/tree/master/maven-central.md)
