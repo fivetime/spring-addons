@@ -676,7 +676,7 @@ spring:
 
 这些修改通常需要大量 Java 代码以及对 Spring Security 的深入了解。但在本文中，仅通过 `application.yml` 属性配置便实现了所有这些功能，且可借助 IDE 自动补全来引导配置过程。
 
-如需了解完整功能列表、自动配置调整选项和默认值覆盖方式，请参阅 [starter 的 GitHub README](https://github.com/ch4mpy/spring-addons)。
+如需了解完整功能列表、自动配置调整选项和默认值覆盖方式，请参阅 [starter 的 GitHub README](https://github.com/fivetime/spring-addons)。
 
 ---
 

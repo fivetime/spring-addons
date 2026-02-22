@@ -554,7 +554,7 @@ class ReactiveResourceServerApplicationTests {
 
 关于 Keycloak 配置的更多细节，请参阅官方入门指南，独立 ZIP 发行版的方式可能是最容易上手的。
 
-如需使用自签名证书在本地搭建带 TLS 的 Keycloak 实例，[这个 GitHub 仓库](https://github.com/ch4mpy/self-signed-certificate-generation)会很有帮助。
+如需使用自签名证书在本地搭建带 TLS 的 Keycloak 实例，[这个 GitHub 仓库](https://github.com/fivetime/self-signed-certificate-generation)会很有帮助。
 
 授权服务器至少需要：
 
